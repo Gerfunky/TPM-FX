@@ -8,23 +8,24 @@
 
 
 typedef enum {
-          MIX_REPLACE
-          ,MIX_ADD 			
-          ,MIX_SUBTRACT		
-          ,MIX_MASK			
-          ,MIX_OR		
-          ,MIX_XOR
-          ,MIX_AND
-          ,MIX_DIFF
-          ,MIX_HARD
-          ,MIX_MULTIPLY
-          ,MIX_HARD_LIGHT
-          ,MIX_OVERLAY
-          ,MIX_TADA
-          ,MIX_DARKEN
-          ,MIX_LIGHTEN
-          ,MIX_LINEAR_BURN
-          ,MIX_SCREEN
+          
+          MIX_ADD =0 			
+          ,MIX_SUBTRACT		=1 
+          ,MIX_MASK			=2 
+          ,MIX_OR		=3
+          ,MIX_XOR  =4
+          ,MIX_AND  =5
+          ,MIX_DIFF =6 
+          ,MIX_HARD = 7
+          ,MIX_MULTIPLY = 8 
+          ,MIX_HARD_LIGHT = 10
+          ,MIX_OVERLAY = 11
+          ,MIX_TADA = 12 
+          ,MIX_DARKEN = 13
+          ,MIX_LIGHTEN = 14
+          ,MIX_LINEAR_BURN = 15
+          ,MIX_SCREEN = 16 
+          ,MIX_REPLACE = 17
             } MixModeType;
 #define HARD_MIX_TRIGGER 128
 
@@ -51,6 +52,7 @@ class tpm_fx
     void PalFill( CRGB *OutputLedArray, CRGBPalette16 currentPalette , uint16_t StartLed, uint16_t numberOfLeds , uint8_t colorIndex, uint8_t indexAddLed, MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255, TBlendType blending = LINEARBLEND );
     void PalFillLong(CRGB *OutputLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndexLong ,uint16_t indexAddLed, MixModeType mix_mode = MIX_REPLACE,  uint8_t brightness = 255, TBlendType blending = LINEARBLEND);
 
+    void noise8(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds , uint16_t scale , uint16_t dist,  MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255, TBlendType  blend = LINEARBLEND);
 
 
 //Modify Layer FX
@@ -58,6 +60,7 @@ class tpm_fx
     // You need to mix the manipulated layer onto your OUTPUT led array.
     // They need a fade in the loop to work or they just go white.
       void AddGlitter(CRGB *OutputLedArray,CRGBPalette16 currentPalette,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds);
+      void AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds);
 
       // Running Dots 
       void DotSine(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm, uint8_t brightness = 255, uint8_t Saturation = 255);
@@ -77,7 +80,10 @@ class tpm_fx
       // Mirror takes the 1st half and mirrors it to the second.
       // Reverse 1sit led in iput array becomes the last led in outputArray
       // Mirror + reverse = Like Reverse and then take the Second half and mirror it to the first.
-      void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,MixModeType mix_mode = MIX_ADD, uint8_t mix_level = 255);
+      void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,MixModeType mix_mode = MIX_ADD, uint8_t mix_level = 255 , boolean onecolor = false );
+      void mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset = 0);
+      
+      //void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,uint8_t mix_mode = 1 , uint8_t mix_level = 255 , boolean onecolor = false );
 
 
       // Mix color onto led

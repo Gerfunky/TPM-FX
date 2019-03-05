@@ -16,7 +16,7 @@ fx::fx()
 void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode)
 {
 		
-	int mixed_color;
+	
 
 
 	switch(mode)
@@ -45,7 +45,7 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 		case MIX_OR:
 			OutputLedArray[led_nr].red  	 =  OutputLedArray[led_nr].red 	| color.red ;
 			OutputLedArray[led_nr].green	 =  OutputLedArray[led_nr].green | color.green ;
-			OutputLedArray[led_nr].blue   =  OutputLedArray[led_nr].blue  | color.blue ;
+			OutputLedArray[led_nr].blue   	=  OutputLedArray[led_nr].blue  | color.blue ;
 			break;
 		case MIX_XOR:
 			OutputLedArray[led_nr].red  	 =  OutputLedArray[led_nr].red 	^ color.red ;
@@ -117,13 +117,6 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 				OutputLedArray[led_nr].blue =  	constrain(OutputLedArray[led_nr].blue  *   (255-color.blue), 0,255) ; 
 
 			}
-/*
-			if(  color.red <128 )  							OutputLedArray[led_nr].red =  	constrain(OutputLedArray[led_nr].red  *   color.red, 0,255) ; 
-			else 											OutputLedArray[led_nr].red =  	constrain(OutputLedArray[led_nr].red  *   (255-color.red), 0,255) ;  // ??? wll always be 0
-			if(  color.green <128 )  						OutputLedArray[led_nr].green =  	constrain(OutputLedArray[led_nr].green  *   color.green, 0,255) ; 
-			else 											OutputLedArray[led_nr].green =  	constrain(OutputLedArray[led_nr].green  *  (255 -color.green ), 0,255) ; 
-			if(  color.blue <128 )  						OutputLedArray[led_nr].blue =  	constrain(OutputLedArray[led_nr].blue  *   color.blue, 0,255) ; 
-			else 											OutputLedArray[led_nr].blue =  	constrain(OutputLedArray[led_nr].blue  *   (255-color.blue), 0,255) ;  //*/
 			break;
 		case MIX_TADA:
 			if( OutputLedArray[led_nr].red  >=  color.red )  	OutputLedArray[led_nr].red =  	OutputLedArray[led_nr].red - (OutputLedArray[led_nr].red - color.red) ;
@@ -153,10 +146,28 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			if( OutputLedArray[led_nr].blue  >=  color.blue )  	OutputLedArray[led_nr].blue =  	OutputLedArray[led_nr].blue ;
 			else 											OutputLedArray[led_nr].blue =  	color.blue;
 			break;
+		default: Serial.println("noMix");
 	}
 }
 
-void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level )
+/* 
+void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,uint8_t mix_mode, uint8_t mix_level, boolean onecolor )
+{
+    switch(mix_mode)
+    {
+        case MIX_ADD:
+            mixOntoLedArray(InputLedArray, OutputLedArray ,  nr_leds,  start_led,  reversed,  mirror ,MIX_ADD,  mix_level,  onecolor );
+        break;
+        case MIX_REPLACE:
+            mixOntoLedArray(InputLedArray, OutputLedArray ,  nr_leds,  start_led,  reversed,  mirror , MIX_REPLACE,  mix_level,  onecolor );
+        break;
+    }
+
+
+
+}  */
+
+void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor )
 {
 	CRGB color;
 
@@ -165,15 +176,13 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
 			
         for(uint16_t led_num = start_led; led_num < start_led + nr_leds  ; led_num ++ )
         {
-
-            if(!mirror)
+            if(onecolor)
+                mixOntoLed(OutputLedArray, led_num, InputLedArray[start_led], mix_mode);
+            else if(!mirror)
             {
                     uint16_t get_led_nr = led_num;
                     if (reversed)  get_led_nr = (start_led + nr_leds) -  (led_num - start_led) -1 ;
 
-        
-                       
-               
                     color.red  = 	map(InputLedArray[get_led_nr].red   ,	0,255,0,mix_level );
                     color.green = 	map(InputLedArray[get_led_nr].green ,	0,255,0,mix_level );
                     color.blue = 	map(InputLedArray[get_led_nr].blue ,	0,255,0,mix_level );
@@ -230,6 +239,89 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
 	} 
 }
 
+
+// Mixes a History Array for example FFT data where every frame a new color is inserted on position 0. 
+// So the Input color will allways start at 0 + offset (default 0)
+void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset )
+{
+	CRGB color;
+
+	if(nr_leds != 0)
+	{
+			
+        for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds  ; post_led_num ++ )
+        {
+			uint16_t get_led_nr = post_led_num - start_led;
+
+            if(onecolor)
+                mixOntoLed(OutputLedArray, post_led_num, InputLedArray[ offset], mix_mode);
+            else if(!mirror) // we are not mirroring
+            {
+                    
+                    if (reversed)  get_led_nr = ( nr_leds) -  (post_led_num - start_led) -1 ;
+					// if (reversed)  get_led_nr = (start_led + nr_leds) -  (led_num - start_led) -1 ;
+
+                    color.red  = 	map(InputLedArray[get_led_nr + offset].red   ,	0,255,0,mix_level );
+                    color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
+                    color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
+                    tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+               
+                
+            }
+            else  // we are mirroring
+            {
+                if(!reversed)
+               {
+                    if(get_led_nr <  nr_leds/2)
+                    {
+                        color.red  = 	map(InputLedArray[get_led_nr + offset].red   ,	0,255,0,mix_level );
+                        color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
+                        color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
+                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+                    }
+                    else
+                    {
+                        //uint16_t hist_led_num = (start_led + nr_leds) -  (led_num - start_led) -1   ;	
+
+						uint16_t hist_led_num =  nr_leds -  (post_led_num - start_led) -1 + offset  ;	
+
+                        color.red  = 	map(InputLedArray[hist_led_num].red   ,	0,255,0,mix_level );
+                        color.green = 	map(InputLedArray[hist_led_num].green ,	0,255,0,mix_level );
+                        color.blue = 	map(InputLedArray[hist_led_num].blue ,	0,255,0,mix_level );
+                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+                    }
+               }
+               else // we are reversed 
+               {
+                   //if(get_led_nr > nr_leds/2)
+				   if (post_led_num < start_led + nr_leds /2 )
+                    {
+						uint16_t hist_led_num =  nr_leds/2  -  (post_led_num - start_led)  + offset ;   // -1
+
+                        color.red  = 	map(InputLedArray[hist_led_num].red   ,	0,255,0,mix_level );
+                        color.green = 	map(InputLedArray[hist_led_num].green ,	0,255,0,mix_level );
+                        color.blue = 	map(InputLedArray[hist_led_num].blue ,	0,255,0,mix_level );
+                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+                    }
+                    else
+                    {
+						uint16_t hist_led_num =  (post_led_num -start_led) - nr_leds/2  + offset ;	 // -1
+                        //uint16_t hist_led_num = (start_led + nr_leds) -  (led_num - start_led) -1   ;	
+
+                        color.red  = 	map(InputLedArray[hist_led_num].red   ,	0,255,0,mix_level );
+                        color.green = 	map(InputLedArray[hist_led_num].green ,	0,255,0,mix_level );
+                        color.blue = 	map(InputLedArray[hist_led_num].blue ,	0,255,0,mix_level );
+                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+                    }
+               }
+               
+                
+                
+            }
+        }
+			
+	} 
+}
 
 
 
@@ -356,8 +448,6 @@ void tpm_fx::PalFillLong( CRGB *OutputLedArray, CRGBPalette16 currentPalette, ui
 
 void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t level, uint8_t cooling , uint8_t sparking, MixModeType mix_mode  ) //, bool mirrored)
 {
-	uint16_t real_nr_leds = Nr_leds;
-	
 	
 		// Step 1.  Cool down every cell a little
 		for (int i = start_led; i < start_led + Nr_leds; i++) {
@@ -418,6 +508,16 @@ void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGBPalette16 currentPalette,fract8
 		if (random8() < chanceOfGlitter)
 		{
 			OutputLedArray[start_led + (random16(nr_leds))] += ColorFromPalette(currentPalette,random8(),255,LINEARBLEND);
+		}
+
+
+}
+void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds)
+{	
+
+		if (random8() < chanceOfGlitter)
+		{
+			OutputLedArray[start_led + (random16(nr_leds))] += color;
 		}
 
 
@@ -564,3 +664,18 @@ void tpm_fx::threeSinPalette(CRGB *OutputLedArray,  CRGBPalette16 currentPalette
   }
 
 } 
+
+
+
+void tpm_fx::noise8(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds , uint16_t scale , uint16_t dist,  MixModeType mix_mode, uint8_t brightness, TBlendType  blend)
+{
+    //EFFECT NOISE
+    for (int i = StartLed; i < StartLed + NrLeds; i++)                                      // Just onE loop to fill up the LED array as all of the pixels change.
+      {  
+		uint8_t index = inoise8(i * scale, dist + i * scale) % 255;            // Get a value from the noise function. I'm using both x and y axis.
+		mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, index, brightness, blend), mix_mode);
+        //OutputLedArray[i] = ColorFromPalette(currentPalette, index, brightness, LINEARBLEND);   // With that value, look up the 8 bit colour palette value and assign it to the current LED.
+      }
+      dist += beatsin8(10, 1, 4);                                              // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.    
+ }
+
