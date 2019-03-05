@@ -34,23 +34,30 @@ typedef enum {
 class tpm_fx
 {
   public:
-    //fx();
+
+
+   
    void noiseSimple(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds  ,uint8_t octaves, uint16_t x, int scale, uint8_t hue_octaves, uint16_t hue_x, int hue_scale,
             uint16_t time) ;
 
 //Create Layer FX
     //these FX allways write a new Layer. So they are mixed onto the output when generating the colors ( to save memory)
-    // if you want to reverse / mirror these do it in 2 steps, first export it to a tempCRGBArray and then mix+mirror+reverse it with mixOntoLedArray .
+    // if you want to  / mirror these do it in 2 steps, first export it to a tempCRGBArray and then mix+mirror+reverse it with mixOntoLedArray .
     // 
     void Fire2012WithPalette(CRGB *OutputLedArray, byte heat[], CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t level, uint8_t cooling = 20 , uint8_t sparking = 50, MixModeType mix_mode = MIX_REPLACE);
+    void Fire2012WithPalette(CRGB *OutputLedArray,CRGB *TempLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t cooling = 20 , uint8_t sparking = 50, MixModeType mix_mode = MIX_REPLACE , TBlendType blending = LINEARBLEND , boolean reversed = false , boolean mirror = false  , uint8_t mix_level = 255 , boolean onecolor = false ) ;
+    
     void Shimmer(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds, uint16_t xscale = 6 , uint16_t yscale = 5, uint8_t beater = 7, MixModeType mix_mode = MIX_REPLACE  ,uint8_t level =255, TBlendType blend = LINEARBLEND ) ;
     void noise16fromPalette(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds, uint8_t speed = 30, uint16_t scale = 200, uint8_t trip = 8,  MixModeType mix_mode = MIX_REPLACE,  TBlendType blend = LINEARBLEND) ;
 
     void threeSinPalette(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds  , uint8_t distance , uint8_t bmpWave1 = 0  ,uint8_t bmpWave2 = 1  ,uint8_t bmpWave3 = 2, int lowWave1= 10 ,int hiWave1 = 250 ,int lowWave2 = 40,int hiWave2= 120 ,int lowWave3 = 5 ,int hiWave3 = 128, MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255, TBlendType  blend = LINEARBLEND  ) ;
 
     // Basic Palette Functions
+    // 2 version 
     void PalFill( CRGB *OutputLedArray, CRGBPalette16 currentPalette , uint16_t StartLed, uint16_t numberOfLeds , uint8_t colorIndex, uint8_t indexAddLed, MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255, TBlendType blending = LINEARBLEND );
+    void PalFill( CRGB *OutputLedArray, CRGB *TempLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndex ,uint16_t indexAddLed, MixModeType mix_mode = MIX_REPLACE, TBlendType blending = LINEARBLEND , boolean reversed = false, boolean mirror = false , uint8_t mix_level = 255 , boolean onecolor = false );
     void PalFillLong(CRGB *OutputLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndexLong ,uint16_t indexAddLed, MixModeType mix_mode = MIX_REPLACE,  uint8_t brightness = 255, TBlendType blending = LINEARBLEND);
+    void PalFillLong(CRGB *OutputLedArray, CRGB *TempLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndexLong ,uint16_t indexAddLed, MixModeType mix_mode = MIX_REPLACE, TBlendType blending = LINEARBLEND , boolean reversed = false, boolean mirror = false , uint8_t mix_level = 255 , boolean onecolor = false );
 
     void noise8(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds , uint16_t scale , uint16_t dist,  MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255, TBlendType  blend = LINEARBLEND);
 

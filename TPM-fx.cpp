@@ -1,24 +1,13 @@
 
 #include "TPM-fx.h"
 
-/*
-fx::fx()
-{
-    
 
-
-}
-*/
 
 // Mixing
 
 // mixes a color onto a led in the OutputLedArray
 void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode)
 {
-		
-	
-
-
 	switch(mode)
 	{
         case MIX_REPLACE:
@@ -150,22 +139,6 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 	}
 }
 
-/* 
-void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,uint8_t mix_mode, uint8_t mix_level, boolean onecolor )
-{
-    switch(mix_mode)
-    {
-        case MIX_ADD:
-            mixOntoLedArray(InputLedArray, OutputLedArray ,  nr_leds,  start_led,  reversed,  mirror ,MIX_ADD,  mix_level,  onecolor );
-        break;
-        case MIX_REPLACE:
-            mixOntoLedArray(InputLedArray, OutputLedArray ,  nr_leds,  start_led,  reversed,  mirror , MIX_REPLACE,  mix_level,  onecolor );
-        break;
-    }
-
-
-
-}  */
 
 void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor )
 {
@@ -359,10 +332,9 @@ CRGB tpm_fx::PalGetFromLongPal(
 	CRGB outcolor = blend(color1, color2, longIndex);
 
 	if (blendType == NOBLEND)
-
-	return color1;
+		return color1;
 	else 
-	return outcolor;
+		return outcolor;
 
 
 }
@@ -377,10 +349,18 @@ void tpm_fx::PalFill( CRGB *OutputLedArray, CRGBPalette16 currentPalette , uint1
     
     for( uint16_t i = StartLed; i < StartLed + numberOfLeds ; i++) {
         
-        mixOntoLed(OutputLedArray, i, ColorFromPalette( currentPalette, colorIndex, brightness, blending) , mix_mode);
+        tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPalette( currentPalette, colorIndex, brightness, blending) , mix_mode);
         colorIndex += indexAddLed;
        
     }
+}
+
+// Pal Fill and mix/reverse/onecolor in one step.
+void tpm_fx::PalFill(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndex ,uint16_t indexAddLed, MixModeType mix_mode , TBlendType blending , boolean reversed , boolean mirror  , uint8_t mix_level , boolean onecolor )
+{
+    
+    tpm_fx::PalFill( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndex, indexAddLed, mix_mode, 255,  blending );
+	tpm_fx::mixOntoLedArray(TempLedArray, OutputLedArray , numberOfLeds, StartLed , reversed , mirror , mix_mode , mix_level , onecolor );
 }
 
 
@@ -389,16 +369,24 @@ void tpm_fx::PalFill( CRGB *OutputLedArray, CRGBPalette16 currentPalette , uint1
 // Get the color from the pallete and write it to the OutputLedArray
 // index goes from 0 to 4095
 void tpm_fx::PalFillLong( CRGB *OutputLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndexLong , uint16_t indexAddLed, MixModeType mix_mode, uint8_t brightness, TBlendType blending )
-{
-    
-    
+{    
     for( uint16_t i = StartLed; i < StartLed + numberOfLeds ; i++)
     {
-        mixOntoLed(OutputLedArray, i, PalGetFromLongPal(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
+        tpm_fx::mixOntoLed(OutputLedArray, i, PalGetFromLongPal(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
         colorIndexLong += indexAddLed;
         if (colorIndexLong >= 4096) colorIndexLong = colorIndexLong-4096;
     }
 }
+
+// Pal Fill and mix/reverse/onecolor in one step.
+void tpm_fx::PalFillLong(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndexLong ,uint16_t indexAddLed, MixModeType mix_mode , TBlendType blending , boolean reversed , boolean mirror  , uint8_t mix_level , boolean onecolor )
+{
+	tpm_fx::PalFillLong( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndexLong, indexAddLed, mix_mode, 255,  blending );
+	tpm_fx::mixOntoLedArray(TempLedArray, OutputLedArray , numberOfLeds, StartLed , reversed , mirror , mix_mode , mix_level , onecolor );
+}
+
+
+
 
 
 
@@ -446,7 +434,7 @@ void tpm_fx::PalFillLong( CRGB *OutputLedArray, CRGBPalette16 currentPalette, ui
 
 
 
-void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t level, uint8_t cooling , uint8_t sparking, MixModeType mix_mode  ) //, bool mirrored)
+void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t level, uint8_t cooling , uint8_t sparking, MixModeType mix_mode  ) 
 {
 	
 		// Step 1.  Cool down every cell a little
@@ -485,6 +473,14 @@ void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16
 
 	
 }
+
+void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray,CRGB *TempLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t cooling , uint8_t sparking, MixModeType mix_mode , TBlendType blending , boolean reversed , boolean mirror  , uint8_t mix_level , boolean onecolor ) 
+{
+	tpm_fx::Fire2012WithPalette(TempLedArray, heat , currentPalette,  start_led, Nr_leds, 255, cooling , sparking, MIX_REPLACE  ) ;
+	tpm_fx::mixOntoLedArray(TempLedArray, OutputLedArray , Nr_leds, start_led , reversed , mirror , mix_mode , mix_level , onecolor );
+
+}
+
 
 
 
