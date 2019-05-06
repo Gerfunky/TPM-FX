@@ -26,6 +26,12 @@ typedef enum {
           ,MIX_LINEAR_BURN = 15
           ,MIX_SCREEN = 16 
           ,MIX_REPLACE = 17
+          ,MIX_SOFT_LIGHT = 18
+          ,MIX_COLOR_DODGE = 19
+          ,MIX_COLOR_BURN = 20
+          ,MIX_LINEAR_DODGE = 21
+          ,MIX_EXCLUSION = 22
+
             } MixModeType;
 #define HARD_MIX_TRIGGER 128
 
