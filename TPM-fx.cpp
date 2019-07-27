@@ -9,14 +9,14 @@
 // formulas from http://www.simplefilter.de/en/basics/mixmods.html
 void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode)
 {
-			
+			/* 
 			float botRed = 255 / OutputLedArray[led_nr].red ;
 			float topRed = 255 / color.red;
 			float botGreen = 255 / OutputLedArray[led_nr].green ;
 			float topGreen = 255 / color.green;
 			float botBlue = 255 / OutputLedArray[led_nr].blue ;
 			float topBlue = 255 / color.blue;
-			
+			*/
 
 	switch(mode)
 	{
@@ -66,13 +66,9 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			else 											        OutputLedArray[led_nr].blue =  	qsub8(color.blue,			 	OutputLedArray[led_nr].blue );
 		break;
 		case MIX_HARD:
-			if (color.red < 255 - OutputLedArray[led_nr].red  ) 	OutputLedArray[led_nr].red  = 0;
-			else 													OutputLedArray[led_nr].red  = 255;	
-		break;
-/*		case MIX_HARD:
-			if( (OutputLedArray[led_nr].red +	color.red ) /2 		>= HARD_MIX_TRIGGER )  		OutputLedArray[led_nr].red =  	255 ; else OutputLedArray[led_nr].red = 0;
-			if( (OutputLedArray[led_nr].green + color.green ) /2  	>= HARD_MIX_TRIGGER )  		OutputLedArray[led_nr].green =  	255 ; else OutputLedArray[led_nr].green = 0;
-			if( (OutputLedArray[led_nr].blue +  color.blue ) /2  	>= HARD_MIX_TRIGGER )  		OutputLedArray[led_nr].blue =  	255 ; else OutputLedArray[led_nr].blue = 0;			
+			if( (255 - OutputLedArray[led_nr].red ) 		>= color.red )  		OutputLedArray[led_nr].red =  	0 ; else OutputLedArray[led_nr].red = 255;
+			if( (255 - OutputLedArray[led_nr].green )   	>= color.green )  		OutputLedArray[led_nr].green =  0 ; else OutputLedArray[led_nr].green = 255;
+			if ((255 - OutputLedArray[led_nr].blue )  		>= color.blue )  		OutputLedArray[led_nr].blue =  	0 ; else OutputLedArray[led_nr].blue = 255;			
 		break; //*/
 		case MIX_MULTIPLY:
 
@@ -173,15 +169,15 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			else 											OutputLedArray[led_nr].blue =  	color.blue;
 		break;
 	
-		case MIX_SCREEN:
-			OutputLedArray[led_nr].red   = 255 * (1 - (1 - topRed)   * (1 - botRed  ));
-			OutputLedArray[led_nr].green = 255 * (1 - (1 - topGreen) * (1 - botGreen) );
-			OutputLedArray[led_nr].blue  = 255 * (1 - (1 - topBlue)  * (1 - botBlue ));
+		case MIX_SCREEN:  // 255-(255-topLayer)*(255-botLayer)/255;
+			OutputLedArray[led_nr].red   = 255 - (255 - color.red     * (255  - OutputLedArray[led_nr].red)	/255);
+			OutputLedArray[led_nr].green = 255 - (255 - color.green * (255 - OutputLedArray[led_nr].green) 	/255);
+			OutputLedArray[led_nr].blue  = 255 - (255 - color.blue  * (255 - OutputLedArray[led_nr].blue )	/255);
 		break;
-		case MIX_COLOR_DODGE:
-			OutputLedArray[led_nr].red   = color.red   / (255 - OutputLedArray[led_nr].red );
-			OutputLedArray[led_nr].green = color.green / (255 - OutputLedArray[led_nr].green );
-			OutputLedArray[led_nr].blue  = color.blue  / (255 - OutputLedArray[led_nr].blue );
+		case MIX_COLOR_DODGE: // constrain(255*botLayer/(255-topLayer), 0,255);
+			OutputLedArray[led_nr].red   = constrain(255 * OutputLedArray[led_nr].red  /(256-color.red ), 0,255);  //  color.red   / (255 - OutputLedArray[led_nr].red );
+			OutputLedArray[led_nr].green = constrain(255 * OutputLedArray[led_nr].green  /(256-color.green ), 0,255); 
+			OutputLedArray[led_nr].blue  = constrain(255 * OutputLedArray[led_nr].blue  /(256-color.blue ), 0,255); 
 		break;
 		case MIX_COLOR_BURN:
 			OutputLedArray[led_nr].red = 255 - (255   - OutputLedArray[led_nr].red)   / color.red ;
@@ -189,9 +185,9 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			OutputLedArray[led_nr].blue = 255 - (255  - OutputLedArray[led_nr].blue)  / color.blue;
 		break;
 		case MIX_LINEAR_BURN:
-			OutputLedArray[led_nr].red   = OutputLedArray[led_nr].red    + color.red    - 255   ;
-			OutputLedArray[led_nr].green = OutputLedArray[led_nr].green  + color.green  - 255  ;
-			OutputLedArray[led_nr].blue  = OutputLedArray[led_nr].blue   + color.blue   - 255 ;
+			OutputLedArray[led_nr].red   = constrain(OutputLedArray[led_nr].red    + color.red   ,0,255 )  - 255   ;
+			OutputLedArray[led_nr].green = constrain(OutputLedArray[led_nr].green  + color.green ,0,255)   - 255  ;
+			OutputLedArray[led_nr].blue  = constrain(OutputLedArray[led_nr].blue   + color.blue  ,0,255)   - 255 ;
 		break;
 /*		case MIX_LINEAR_BURN:
 			if( qadd8(OutputLedArray[led_nr].red ,  	color.red ) 	== 255 )  		OutputLedArray[led_nr].red =  	255 ; else OutputLedArray[led_nr].red = 0;
@@ -294,7 +290,14 @@ void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , 
 			uint16_t get_led_nr = post_led_num - start_led;
 
             if(onecolor)
-                mixOntoLed(OutputLedArray, post_led_num, InputLedArray[ offset], mix_mode);
+			{
+				   	color.red  = 	map(InputLedArray[ offset].red   ,	0,255,0,mix_level );
+                    color.green = 	map(InputLedArray[ offset].green ,	0,255,0,mix_level );
+                    color.blue = 	map(InputLedArray[ offset].blue ,	0,255,0,mix_level );
+
+                mixOntoLed(OutputLedArray, post_led_num, color , mix_mode);
+			
+			}
             else if(!mirror) // we are not mirroring
             {
                     
@@ -406,6 +409,72 @@ CRGB tpm_fx::PalGetFromLongPal(
 
 }
 
+CRGB ColorFromPaletteExtended( const CRGBPalette16& pal, uint16_t index, uint8_t brightness, TBlendType blendType)
+{
+	// from https://github.com/FastLED/FastLED/pull/202/commits/d900daa730a833b0b57466be07dc53e9c5e68f84
+	//	
+	//
+    // This fucnction has the same intuitive behavior as the other ColorFromPalette
+    // functions, except it provides 8-bit interpolation between palette entries.
+
+    // Extract the four most significant bits of the index as a palette index.
+    uint8_t index_4bit = (index >> 12);
+
+    // Calculate the 8-bit offset from the palette index.
+    // Throws away the 4 least significant bits and uses the middle 8.
+    uint8_t offset = (uint8_t)(index >> 4);
+
+    // Get the palette entry from the 4-bit index
+    //  CRGB rgb1 = pal[ hi4];
+    const CRGB* entry = &(pal[0]) + index_4bit;
+    uint8_t red1   = entry->red;
+    uint8_t green1 = entry->green;
+    uint8_t blue1  = entry->blue;
+
+    uint8_t blend = offset && (blendType != NOBLEND);
+
+    if( blend ) {
+        // If palette blending is enabled, use the offset to interpolate between
+        // the selected palette entry and the next.
+
+        if( index_4bit == 15 ) {
+            entry = &(pal[0]);
+        } else {
+            entry++;
+        }
+
+        // Calculate the scaling factor and scaled values for the lower palette value.
+
+        uint8_t f1 = 256 - offset;
+
+        red1   = scale8_LEAVING_R1_DIRTY( red1,   f1);
+        green1 = scale8_LEAVING_R1_DIRTY( green1, f1);
+        blue1  = scale8_LEAVING_R1_DIRTY( blue1,  f1);
+
+        // Calculate the scaled values for the neighboring palette value.
+        uint8_t red2   = entry->red;
+        uint8_t green2 = entry->green;
+        uint8_t blue2  = entry->blue;
+        red2   = scale8_LEAVING_R1_DIRTY( red2,   offset);
+        green2 = scale8_LEAVING_R1_DIRTY( green2, offset);
+        blue2  = scale8_LEAVING_R1_DIRTY( blue2,  offset);
+
+        cleanup_R1();
+
+        // These sums can't overflow, so no qadd8 needed.
+        red1   += red2;
+        green1 += green2;
+        blue1  += blue2;
+
+    }
+
+    if( brightness != 255) {
+        nscale8x3_video( red1, green1, blue1, brightness);
+    }
+
+    return CRGB( red1, green1, blue1);
+}
+
 
 
 
@@ -439,9 +508,9 @@ void tpm_fx::PalFillLong( CRGB *OutputLedArray, CRGBPalette16 currentPalette, ui
 {    
     for( uint16_t i = StartLed; i < StartLed + numberOfLeds ; i++)
     {
-        tpm_fx::mixOntoLed(OutputLedArray, i, PalGetFromLongPal(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
+        tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPaletteExtended(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
         colorIndexLong += indexAddLed;
-        if (colorIndexLong >= 4096) colorIndexLong = colorIndexLong-4096;
+        //if (colorIndexLong >= 4096) colorIndexLong = colorIndexLong-4096;
     }
 }
 
@@ -596,6 +665,7 @@ void tpm_fx::DotSine(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, ui
 		{
             OutputLedArray[beatsin16(i + bpm, start_led, start_led + nr_leds - 1)] |= CHSV( inputhue + dothue, Saturation, brightness);
 			dothue += (255 / nr_dots);
+
 		}
 }
 
@@ -642,10 +712,10 @@ void tpm_fx::DotSaw(CRGB *OutputLedArray,CRGB inputcolor, uint8_t nr_dots, uint1
 
 
 
-void tpm_fx::Shimmer(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds, uint16_t xscale , uint16_t yscale , uint8_t beater, MixModeType mix_mode ,uint8_t level , TBlendType blend  ) 
+uint16_t  tpm_fx::Shimmer(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds, uint16_t dist, uint16_t xscale , uint16_t yscale , uint8_t beater, MixModeType mix_mode ,uint8_t level , TBlendType blend  ) 
 {          // A time (rather than loop) based demo sequencer. This gives us full control over the length of each sequence.
 
-   static int16_t dist = random8();
+   //static int16_t dist = random8();
 
 	CRGB color;
 
@@ -661,7 +731,7 @@ void tpm_fx::Shimmer(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16
   }
   
   //dist += beatsin8(beater,1,4);                                                // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.
- dist += beater;
+ return  dist + beater;
 
 } // shimmer()
 
