@@ -72,9 +72,9 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 		break; //*/
 		case MIX_MULTIPLY:
 
-			OutputLedArray[led_nr].red =    OutputLedArray[led_nr].red  *   color.red /255  ;
-			OutputLedArray[led_nr].green =  OutputLedArray[led_nr].green  *   color.green /255  ;
-			OutputLedArray[led_nr].blue =   OutputLedArray[led_nr].blue  *   color.blue  /255 ;
+			OutputLedArray[led_nr].red =    constrain(OutputLedArray[led_nr].red  *   color.red /255 ,0,255) ;
+			OutputLedArray[led_nr].green =  constrain(OutputLedArray[led_nr].green  *   color.green /255 ,0,255) ;
+			OutputLedArray[led_nr].blue =   constrain(OutputLedArray[led_nr].blue  *   color.blue  /255 ,0,255);
 			
 
 		//	OutputLedArray[led_nr].red =    constrain(OutputLedArray[led_nr].red  *   color.red, 0,255) ;
@@ -168,7 +168,11 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			if( OutputLedArray[led_nr].blue  >=  color.blue )  	OutputLedArray[led_nr].blue =  	OutputLedArray[led_nr].blue ;
 			else 											OutputLedArray[led_nr].blue =  	color.blue;
 		break;
-	
+		case MIX_LINEAR_BURN:
+			OutputLedArray[led_nr].red   = constrain(OutputLedArray[led_nr].red    + color.red   ,0,255 )  - 255   ;
+			OutputLedArray[led_nr].green = constrain(OutputLedArray[led_nr].green  + color.green ,0,255)   - 255  ;
+			OutputLedArray[led_nr].blue  = constrain(OutputLedArray[led_nr].blue   + color.blue  ,0,255)   - 255 ;
+		break;
 		case MIX_SCREEN:  // 255-(255-topLayer)*(255-botLayer)/255;
 			OutputLedArray[led_nr].red   = 255 - (255 - color.red     * (255  - OutputLedArray[led_nr].red)	/255);
 			OutputLedArray[led_nr].green = 255 - (255 - color.green * (255 - OutputLedArray[led_nr].green) 	/255);
@@ -184,11 +188,7 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			OutputLedArray[led_nr].green = 255 - (255 - OutputLedArray[led_nr].green) / color.green ;
 			OutputLedArray[led_nr].blue = 255 - (255  - OutputLedArray[led_nr].blue)  / color.blue;
 		break;
-		case MIX_LINEAR_BURN:
-			OutputLedArray[led_nr].red   = constrain(OutputLedArray[led_nr].red    + color.red   ,0,255 )  - 255   ;
-			OutputLedArray[led_nr].green = constrain(OutputLedArray[led_nr].green  + color.green ,0,255)   - 255  ;
-			OutputLedArray[led_nr].blue  = constrain(OutputLedArray[led_nr].blue   + color.blue  ,0,255)   - 255 ;
-		break;
+		
 /*		case MIX_LINEAR_BURN:
 			if( qadd8(OutputLedArray[led_nr].red ,  	color.red ) 	== 255 )  		OutputLedArray[led_nr].red =  	255 ; else OutputLedArray[led_nr].red = 0;
 			if( qadd8(OutputLedArray[led_nr].green ,  color.green ) 	== 255 )  		OutputLedArray[led_nr].green =  	255 ; else OutputLedArray[led_nr].green = 0;
@@ -278,16 +278,21 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
 
 // Mixes a History Array for example FFT data where every frame a new color is inserted on position 0. 
 // So the Input color will allways start at 0 + offset (default 0)
-void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset )
+void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset, uint8_t extend )
 {
 	CRGB color;
+	uint8_t internal_extend = 0;
+	uint8_t extend_counter = 0;
+	uint16_t get_led_nr = 0;
+
 
 	if(nr_leds != 0)
 	{
 			
-        for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds  ; post_led_num ++ )
+        for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds   ; post_led_num ++ )
         {
-			uint16_t get_led_nr = post_led_num - start_led;
+
+
 
             if(onecolor)
 			{
@@ -308,7 +313,7 @@ void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , 
                     color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
                     color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
                     tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
-               
+					
                 
             }
             else  // we are mirroring
@@ -361,6 +366,24 @@ void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , 
                 
                 
             }
+
+
+			if(extend >0) // increment the extend counter
+			{
+
+				if (extend_counter == extend )
+				{
+					get_led_nr++   ;
+					extend_counter = 0 ;
+				}
+				 extend_counter++;
+
+			}
+			else
+			{
+				get_led_nr++; // increment the get_led  for non extendned
+			}
+
         }
 			
 	} 
@@ -508,9 +531,10 @@ void tpm_fx::PalFillLong( CRGB *OutputLedArray, CRGBPalette16 currentPalette, ui
 {    
     for( uint16_t i = StartLed; i < StartLed + numberOfLeds ; i++)
     {
-        tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPaletteExtended(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
+        //tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPaletteExtended(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
+		tpm_fx::mixOntoLed(OutputLedArray, i, PalGetFromLongPal(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
         colorIndexLong += indexAddLed;
-        //if (colorIndexLong >= 4096) colorIndexLong = colorIndexLong-4096;
+        if (colorIndexLong >= 4096) colorIndexLong = colorIndexLong-4096;
     }
 }
 

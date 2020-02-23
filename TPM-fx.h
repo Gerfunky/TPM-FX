@@ -95,7 +95,7 @@ class tpm_fx
       // Reverse 1sit led in iput array becomes the last led in outputArray
       // Mirror + reverse = Like Reverse and then take the Second half and mirror it to the first.
       void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,MixModeType mix_mode = MIX_ADD, uint8_t mix_level = 255 , boolean onecolor = false );
-      void mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset = 0);
+      void mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset = 0, uint8_t extend = 0);
       
       //void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,uint8_t mix_mode = 1 , uint8_t mix_level = 255 , boolean onecolor = false );
 
