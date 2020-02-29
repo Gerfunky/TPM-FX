@@ -2,8 +2,25 @@
 #include "TPM-fx.h"
 
 
+// Tool functions
+boolean isODDNum(uint8_t number) 
+{
+
+	//if ( (number % 2) == 0) { do_something(); }
+	//if ( (number & 0x01) == 0) 
+	if (bitRead(number, 0) == true)
+		return true;
+
+	else
+		return false;
+
+}
+
+
 
 // Mixing
+
+
 
 // mixes a color onto a led in the OutputLedArray
 // formulas from http://www.simplefilter.de/en/basics/mixmods.html
@@ -205,7 +222,98 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 
 void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor )
 {
+
+	tpm_fx::mixHistoryOntoLedArray( InputLedArray,  OutputLedArray , nr_leds, start_led, reversed, mirror , mix_mode,  mix_level,  onecolor, start_led, 0 );
+
+
+	/*
+	uint8_t offset = 0;
+	uint8_t extend = 0;
 	CRGB color;
+	uint8_t extend_counter = 0;
+	uint16_t get_plus_led_nr = start_led;
+	uint16_t get_minus_led_nr = start_led + nr_leds - 1;
+	uint16_t get_led_nr = get_plus_led_nr;
+	//if (reversed) get_led_nr = nr_leds - 1;
+
+
+	if(nr_leds != 0)
+	{
+		 for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds   ; post_led_num ++ )
+        {	
+			if(reversed) get_led_nr = get_minus_led_nr;
+			else 		 get_led_nr = get_plus_led_nr;
+
+			
+			if(onecolor)
+			{
+				
+				color.red  = 	map(InputLedArray[ start_led].red   ,	0,255,0,mix_level );
+				color.green = 	map(InputLedArray[ start_led].green ,	0,255,0,mix_level );
+				color.blue = 	map(InputLedArray[ start_led].blue ,	0,255,0,mix_level );
+                mixOntoLed(OutputLedArray, post_led_num, color , mix_mode);
+			
+			}
+			if(post_led_num - start_led <  nr_leds/2)
+			{
+				if (post_led_num - start_led ==  0 && mirror && reversed)  get_minus_led_nr = start_led + nr_leds/2 ;
+				
+				if (mirror &&  reversed ) get_led_nr =  get_minus_led_nr;
+				if(mirror && !reversed )  get_led_nr = get_plus_led_nr;
+			
+				
+
+				color.red  = 	map(InputLedArray[get_led_nr + offset].red   ,	0,255,0,mix_level );
+				color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
+				color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
+				tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+
+			}
+			else
+			{
+				if (post_led_num - start_led ==  nr_leds/2 && mirror && reversed)  get_plus_led_nr = start_led;  
+
+				if (mirror &&  reversed ) get_led_nr =  get_plus_led_nr;
+				if (mirror && !reversed ) get_led_nr = get_minus_led_nr;
+			
+				
+
+
+				color.red  = 	map(InputLedArray[get_led_nr + offset].red   ,	0,255,0,mix_level );
+				color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
+				color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
+				tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
+
+			}
+
+
+		
+
+			if (extend_counter >= extend )
+			{
+				get_plus_led_nr++;
+				get_minus_led_nr--;
+				
+
+				extend_counter = 0 ;
+				
+			}
+			else  extend_counter++;
+
+		
+
+
+
+		}
+
+	}
+
+
+*/
+
+
+
+/*
 
 	if(nr_leds != 0)
 	{
@@ -272,7 +380,7 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
             }
         }
 			
-	} 
+	}  */
 }
 
 
@@ -281,112 +389,69 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
 void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset, uint8_t extend )
 {
 	CRGB color;
-	uint8_t internal_extend = 0;
 	uint8_t extend_counter = 0;
-	uint16_t get_led_nr = 0;
+	uint16_t get_plus_led_nr = offset;
+	uint16_t get_minus_led_nr = offset + nr_leds - 1;
+	uint16_t get_led_nr = offset;
 
+	uint16_t real_post_led_num;
+	uint8_t oddNumberBump = isODDNum(nr_leds);
 
 	if(nr_leds != 0)
 	{
+		 for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds   ; post_led_num ++ )
+        {	
+
 			
-        for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds   ; post_led_num ++ )
-        {
-
-
-
-            if(onecolor)
+			if(onecolor)
 			{
-				   	color.red  = 	map(InputLedArray[ offset].red   ,	0,255,0,mix_level );
-                    color.green = 	map(InputLedArray[ offset].green ,	0,255,0,mix_level );
-                    color.blue = 	map(InputLedArray[ offset].blue ,	0,255,0,mix_level );
-
-                mixOntoLed(OutputLedArray, post_led_num, color , mix_mode);
-			
+				get_led_nr = offset;
+				real_post_led_num = post_led_num;
 			}
-            else if(!mirror) // we are not mirroring
-            {
-                    
-                    if (reversed)  get_led_nr = ( nr_leds) -  (post_led_num - start_led) -1 ;
-					// if (reversed)  get_led_nr = (start_led + nr_leds) -  (led_num - start_led) -1 ;
-
-                    color.red  = 	map(InputLedArray[get_led_nr + offset].red   ,	0,255,0,mix_level );
-                    color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
-                    color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
-                    tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
-					
-                
-            }
-            else  // we are mirroring
-            {
-                if(!reversed)
-               {
-                    if(get_led_nr <  nr_leds/2)
-                    {
-                        color.red  = 	map(InputLedArray[get_led_nr + offset].red   ,	0,255,0,mix_level );
-                        color.green = 	map(InputLedArray[get_led_nr + offset].green ,	0,255,0,mix_level );
-                        color.blue = 	map(InputLedArray[get_led_nr + offset].blue ,	0,255,0,mix_level );
-                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
-                    }
-                    else
-                    {
-                        //uint16_t hist_led_num = (start_led + nr_leds) -  (led_num - start_led) -1   ;	
-
-						uint16_t hist_led_num =  nr_leds -  (post_led_num - start_led) -1 + offset  ;	
-
-                        color.red  = 	map(InputLedArray[hist_led_num].red   ,	0,255,0,mix_level );
-                        color.green = 	map(InputLedArray[hist_led_num].green ,	0,255,0,mix_level );
-                        color.blue = 	map(InputLedArray[hist_led_num].blue ,	0,255,0,mix_level );
-                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
-                    }
-               }
-               else // we are reversed 
-               {
-                   //if(get_led_nr > nr_leds/2)
-				   if (post_led_num < start_led + nr_leds /2 )
-                    {
-						uint16_t hist_led_num =  nr_leds/2  -  (post_led_num - start_led)  + offset ;   // -1
-
-                        color.red  = 	map(InputLedArray[hist_led_num].red   ,	0,255,0,mix_level );
-                        color.green = 	map(InputLedArray[hist_led_num].green ,	0,255,0,mix_level );
-                        color.blue = 	map(InputLedArray[hist_led_num].blue ,	0,255,0,mix_level );
-                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
-                    }
-                    else
-                    {
-						uint16_t hist_led_num =  (post_led_num -start_led) - nr_leds/2  + offset ;	 // -1
-                        //uint16_t hist_led_num = (start_led + nr_leds) -  (led_num - start_led) -1   ;	
-
-                        color.red  = 	map(InputLedArray[hist_led_num].red   ,	0,255,0,mix_level );
-                        color.green = 	map(InputLedArray[hist_led_num].green ,	0,255,0,mix_level );
-                        color.blue = 	map(InputLedArray[hist_led_num].blue ,	0,255,0,mix_level );
-                        tpm_fx::mixOntoLed(OutputLedArray, post_led_num, color, mix_mode);
-                    }
-               }
-               
-                
-                
-            }
-
-
-			if(extend >0) // increment the extend counter
+			else if(post_led_num - start_led <  nr_leds/2 + oddNumberBump)
 			{
-
-				if (extend_counter == extend )
-				{
-					get_led_nr++   ;
-					extend_counter = 0 ;
-				}
-				 extend_counter++;
+				
+				if      (!mirror &&  !reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
+				else if (!mirror &&   reversed )	{get_led_nr = get_minus_led_nr; real_post_led_num = post_led_num;}  
+				else if ( mirror &&  !reversed )  	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
+				else if ( mirror &&   reversed ) 	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led + nr_leds/2 -1 + oddNumberBump) - ( post_led_num -  start_led ) ;}	
 
 			}
 			else
 			{
-				get_led_nr++; // increment the get_led  for non extendned
+
+				if (post_led_num - start_led ==  nr_leds/2 + oddNumberBump  && mirror && !reversed )  { get_plus_led_nr = offset;   extend_counter = 0;}
+				if (post_led_num - start_led ==  nr_leds/2 + oddNumberBump  && mirror &&  reversed )  { get_plus_led_nr = offset + oddNumberBump ;   extend_counter = 0;}
+		
+				if      (!mirror &&  !reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
+				else if (!mirror &&   reversed )	{get_led_nr = get_minus_led_nr; real_post_led_num = post_led_num;}  
+				else if ( mirror &&  !reversed )  	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led  + nr_leds -1 + oddNumberBump ) - ( post_led_num - nr_leds/2 - start_led  ) ;}
+				else if ( mirror &&   reversed ) 	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num  ;}
+
 			}
 
-        }
 			
-	} 
+			color.red  = 	map(InputLedArray[get_led_nr].red   ,	0,255,0,mix_level );
+			color.green = 	map(InputLedArray[get_led_nr].green ,	0,255,0,mix_level );
+			color.blue = 	map(InputLedArray[get_led_nr].blue ,	0,255,0,mix_level );
+			tpm_fx::mixOntoLed(OutputLedArray, real_post_led_num, color, mix_mode);
+		
+
+			if (extend_counter >= extend )
+			{
+				get_plus_led_nr++;
+				get_minus_led_nr--;
+				
+
+				extend_counter = 0 ;
+				
+			}
+			else extend_counter++;
+		}
+
+	}
+
+
 }
 
 
