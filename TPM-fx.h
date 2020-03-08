@@ -68,13 +68,17 @@ class tpm_fx
 
     void noise8(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t NrLeds , uint16_t scale , uint16_t dist,  MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255, TBlendType  blend = LINEARBLEND);
 
+    void strobe(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , uint16_t on_Frames ,uint16_t off_frames , uint16_t frame_position ,MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255);
+    void BlinkingEyes(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , uint16_t EyeWidth, uint16_t EyeSpace, uint16_t eye_pos, uint16_t on_frames,  uint16_t frame_pos, uint8_t fade_speed,  MixModeType mix_mode = MIX_ADD, uint8_t brightness =255);
+    void meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos,  byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay);
+
 
 //Modify Layer FX
     // These FX manipulate a CRGB array. They look best if they allways manipulate the same layer 
     // You need to mix the manipulated layer onto your OUTPUT led array.
     // They need a fade in the loop to work or they just go white.
       void AddGlitter(CRGB *OutputLedArray,CRGBPalette16 currentPalette,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds);
-      void AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds);
+      void AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds, uint8_t level);
 
       // Running Dots 
       void DotSine(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm, uint8_t brightness = 255, uint8_t Saturation = 255);

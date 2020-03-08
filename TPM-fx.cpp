@@ -314,6 +314,8 @@ CRGB tpm_fx::PalGetFromLongPal(
 	uint8_t indexC1 = 0;
 	uint8_t indexC2 = 0;
 
+	while (longIndex >= 4096 ) longIndex  = longIndex - 4096;
+
 	if (255 < longIndex)
 	while (255 < longIndex)
 	{
@@ -501,8 +503,6 @@ void tpm_fx::PalFillLong(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 
 // Array of temperature readings at each simulation cell
 //static 
 
-
-
 void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t level, uint8_t cooling , uint8_t sparking, MixModeType mix_mode  ) 
 {
 	
@@ -577,12 +577,13 @@ void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGBPalette16 currentPalette,fract8
 
 
 }
-void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds)
+void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds, uint8_t level)
 {	
 
 		if (random8() < chanceOfGlitter)
 		{
-			OutputLedArray[start_led + (random16(nr_leds))] += color;
+			color.nscale8(level);
+			OutputLedArray[start_led + (random16(nr_leds))] += color ;
 		}
 
 
@@ -745,3 +746,98 @@ void tpm_fx::noise8(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_
       dist += beatsin8(10, 1, 4);                                              // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.    
  }
 
+
+
+
+void tpm_fx::strobe(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , uint16_t on_Frames ,uint16_t off_frames, uint16_t frame_position ,MixModeType mix_mode, uint8_t brightness)
+{   /* 	Strobe a color	
+		Color			// the color to strobe
+		frame_position  // We need to pass it the active framecount please add one each frame 
+		on_frames		// how many onframes
+		off_frames      // howmany off frames
+		
+	*/
+
+
+	while(frame_position  >= on_Frames + off_frames)
+	{
+		frame_position =  frame_position - (on_Frames + off_frames);
+	}
+
+	if (frame_position  < on_Frames)
+	{
+			color.red  = 	map(color.red   ,	0,255,0,brightness );
+			color.green = 	map(color.green ,	0,255,0,brightness );
+			color.blue = 	map(color.blue ,	0,255,0,brightness );
+			
+
+
+		for( uint16_t i = StartLed; i < StartLed + NrLeds ; i++)
+		{
+			//tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPaletteExtended(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
+			tpm_fx::mixOntoLed(OutputLedArray, i, color, mix_mode);
+
+		}
+	
+		}
+
+
+}
+
+
+
+void tpm_fx::BlinkingEyes(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , uint16_t EyeWidth, uint16_t EyeSpace, uint16_t eye_pos, uint16_t on_frames,  uint16_t frame_pos, uint8_t fade_speed,  MixModeType mix_mode, uint8_t brightness)
+{		   	// Eyes  
+			//origional idea from https://www.tweaking4all.com/hardware/arduino/adruino-led-strip-effects/#LEDStripEffectBlinkingHalloweenEyes
+
+
+  int StartPoint  = constrain(eye_pos , StartLed, StartLed + NrLeds  - (2*EyeWidth) - EyeSpace  ) ; //sanity check if the eye poss is in the range of the leds.
+  int Start2ndEye = StartPoint + EyeWidth + EyeSpace;
+ 
+  if (frame_pos > on_frames)
+	fadeToBlackBy(&color,1,   constrain( (frame_pos-on_frames) * fade_speed, 0,255 ));
+
+ 
+  for(int i = 0; i < EyeWidth; i++) 
+  {
+	  tpm_fx::mixOntoLed(OutputLedArray, StartPoint + i, color, mix_mode);
+	  tpm_fx::mixOntoLed(OutputLedArray, Start2ndEye + i, color, mix_mode);
+  }
+ 
+
+  
+}
+
+
+void tpm_fx::meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos,  byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay) {  
+  //setAll(0,0,0);
+ 
+  int i = frame_pos; // for(int i = 0; i < NrLeds+NrLeds; i++) 
+
+  
+  {
+   
+   
+    // fade brightness all LEDs one step
+    for(int j=StartLed; j< StartLed + NrLeds; j++) {
+      if( (!meteorRandomDecay) || (random(10)>5) ) 
+	  {
+		//fadeToBlackBy(&color,1,   meteorTrailDecay);  
+        //fadeToBlack(j, meteorTrailDecay );  
+		tpm_fx::fadeLedArray(OutputLedArray, j,1, meteorTrailDecay)   ;   
+      }
+    }
+   
+    // draw meteor
+    for(int j = 0; j < meteorSize; j++) {
+      if( ( i-j < StartLed + NrLeds) && (i-j >= StartLed) ) 
+	  {
+        //setPixel(i-j, red, green, blue);
+		tpm_fx::mixOntoLed(OutputLedArray, i-j, color, MIX_REPLACE);
+      }
+    }
+   
+    //showStrip();
+    //delay(SpeedDelay);
+  }
+}
