@@ -3,6 +3,8 @@
 
 
 // Tool functions
+
+// return True if OddNumber
 boolean isODDNum(uint8_t number) 
 {
 
@@ -16,6 +18,46 @@ boolean isODDNum(uint8_t number)
 
 }
 
+// Rotate animation
+void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t framesFullRotation, uint16_t framePos)
+{		 
+
+	//uint16_t rotatePosition =  ((nr_leds*100) / framesFullRotation)  * framePos /100;
+	
+	unsigned long rotatePosition =  ((nr_leds*1000) / framesFullRotation)  * framePos / 1000;
+
+
+	tpm_fx::rotate(OutputLedArray ,  nr_leds,  start_led,  uint16_t(rotatePosition)) ;
+
+}
+
+
+// Rotate by fixed amount
+void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t rotateAmount)
+{		
+
+	if (rotateAmount > 0)
+	{
+		constrain(rotateAmount , 0 ,nr_leds );
+		CRGB color[nr_leds];
+
+
+		for(uint16_t post_led_num = 0; post_led_num < rotateAmount  ; post_led_num++ )
+		{
+			color[post_led_num] = OutputLedArray[ start_led + nr_leds - rotateAmount + post_led_num ];
+		}
+
+		for(uint16_t post_led_num = nr_leds -1   ; post_led_num >=  rotateAmount ; post_led_num-- )
+		{	
+			OutputLedArray[start_led + post_led_num  ] = OutputLedArray[start_led + post_led_num - rotateAmount]  ;
+		}
+		for(uint16_t post_led_num = 0  ; post_led_num < rotateAmount  ; post_led_num++ )
+		{	
+			OutputLedArray[start_led + post_led_num] =  color[ post_led_num]  ;
+		}
+	}
+}
+
 
 
 // Mixing
@@ -24,7 +66,7 @@ boolean isODDNum(uint8_t number)
 
 // mixes a color onto a led in the OutputLedArray
 // formulas from http://www.simplefilter.de/en/basics/mixmods.html
-void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode)
+void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode, uint8_t level)
 {
 			/* 
 			float botRed = 255 / OutputLedArray[led_nr].red ;
@@ -34,6 +76,14 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			float botBlue = 255 / OutputLedArray[led_nr].blue ;
 			float topBlue = 255 / color.blue;
 			*/
+	
+	
+	//color.nscale8_video(level);
+
+	color.red  = 	map(color.red   ,	0,255,0,level );
+	color.green = 	map(color.green ,	0,255,0,level );
+	color.blue = 	map(color.blue ,	0,255,0,level );
+		
 
 	switch(mode)
 	{
@@ -41,18 +91,22 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
                 OutputLedArray[led_nr] = color;
         break;
 		case MIX_ADD:
-			OutputLedArray[led_nr].red   =  qadd8(OutputLedArray[led_nr].red ,    color.red );
-			OutputLedArray[led_nr].green =  qadd8(OutputLedArray[led_nr].green ,  color.green );
-			OutputLedArray[led_nr].blue   =  qadd8(OutputLedArray[led_nr].blue  ,  color.blue );
+			OutputLedArray[led_nr] =  OutputLedArray[led_nr] + color;
+
+			//OutputLedArray[led_nr].red   =  qadd8(OutputLedArray[led_nr].red ,    color.red );
+			//OutputLedArray[led_nr].green =  qadd8(OutputLedArray[led_nr].green ,  color.green );
+			//OutputLedArray[led_nr].blue   =  qadd8(OutputLedArray[led_nr].blue  ,  color.blue );
 		break;
 
 		case MIX_SUBTRACT:
-			OutputLedArray[led_nr].red   =  qsub8(OutputLedArray[led_nr].red ,    color.red );
-			OutputLedArray[led_nr].green =  qsub8(OutputLedArray[led_nr].green ,  color.green );
-			OutputLedArray[led_nr].blue   =  qsub8(OutputLedArray[led_nr].blue  ,  color.blue );
+			OutputLedArray[led_nr] =  OutputLedArray[led_nr] - color;
+			//OutputLedArray[led_nr].red   =  qsub8(OutputLedArray[led_nr].red ,    color.red );
+			//OutputLedArray[led_nr].green =  qsub8(OutputLedArray[led_nr].green ,  color.green );
+			//OutputLedArray[led_nr].blue   =  qsub8(OutputLedArray[led_nr].blue  ,  color.blue );
 		break;
 
 		case MIX_MASK:
+			//OutputLedArray[led_nr] 		=  scale8_video( OutputLedArray[led_nr] , color);
 			OutputLedArray[led_nr].red   =   scale8(OutputLedArray[led_nr].red ,    color.red );
 			OutputLedArray[led_nr].green =   scale8(OutputLedArray[led_nr].green ,  color.green );
 			OutputLedArray[led_nr].blue   =  scale8(OutputLedArray[led_nr].blue  ,  color.blue );
@@ -220,6 +274,9 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 }
 
 
+
+// Mix the InputArry onto the OutputArray
+// InputArray start possiton = start_led
 void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor )
 {
 
@@ -228,8 +285,8 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
 }
 
 
-// Mixes a History Array for example FFT data where every frame a new color is inserted on position 0. 
-// So the Input color will allways start at 0 + offset (default 0)
+// Mixes a InputArray onto the OutputArray for example FFT data where every frame is a new color is inserted on position 0. 
+// InputArray start possiton = 0 + offset(0) 
 void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset, uint8_t extend )
 {
 	CRGB color;
@@ -274,13 +331,11 @@ void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , 
 
 			}
 
-			
-			color.red  = 	map(InputLedArray[get_led_nr].red   ,	0,255,0,mix_level );
-			color.green = 	map(InputLedArray[get_led_nr].green ,	0,255,0,mix_level );
-			color.blue = 	map(InputLedArray[get_led_nr].blue ,	0,255,0,mix_level );
-			tpm_fx::mixOntoLed(OutputLedArray, real_post_led_num, color, mix_mode);
-		
+			color = InputLedArray[get_led_nr]  ;
 
+
+			tpm_fx::mixOntoLed(OutputLedArray, real_post_led_num, color, mix_mode ,mix_level );
+		
 			if (extend_counter >= extend )
 			{
 				get_plus_led_nr++;
@@ -304,7 +359,9 @@ void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , 
 
 
 // Basic Palette Functions
-// made a new fuction to spread out the 255 index/color  pallet to 16*256 = 4096 colors
+// Get the Collor from a long Palette
+// Palette spread out to 16*256 = 4096 colors
+// Index from 0 to 4095
 CRGB tpm_fx::PalGetFromLongPal( 
     CRGBPalette16 currentPalette,
 	uint16_t longIndex,
@@ -419,7 +476,7 @@ void tpm_fx::PalFill( CRGB *OutputLedArray, CRGBPalette16 currentPalette , uint1
     
     for( uint16_t i = StartLed; i < StartLed + numberOfLeds ; i++) {
         
-        tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPalette( currentPalette, colorIndex, brightness, blending) , mix_mode);
+        tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPalette( currentPalette, colorIndex, 255, blending) , mix_mode, brightness);
         colorIndex += indexAddLed;
        
     }
@@ -431,6 +488,8 @@ void tpm_fx::PalFill(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 curr
     
     tpm_fx::PalFill( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndex, indexAddLed, mix_mode, 255,  blending );
 	tpm_fx::mixOntoLedArray(TempLedArray, OutputLedArray , numberOfLeds, StartLed , reversed , mirror , mix_mode , mix_level , onecolor );
+	
+	
 }
 
 
@@ -443,17 +502,18 @@ void tpm_fx::PalFillLong( CRGB *OutputLedArray, CRGBPalette16 currentPalette, ui
     for( uint16_t i = StartLed; i < StartLed + numberOfLeds ; i++)
     {
         //tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPaletteExtended(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
-		tpm_fx::mixOntoLed(OutputLedArray, i, PalGetFromLongPal(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
+		tpm_fx::mixOntoLed(OutputLedArray, i, PalGetFromLongPal(currentPalette,colorIndexLong,255,blending) , mix_mode ,brightness );
         colorIndexLong += indexAddLed;
         if (colorIndexLong >= 4096) colorIndexLong = colorIndexLong-4096;
     }
 }
 
 // Pal Fill and mix/reverse/onecolor in one step.
+// index goes from 0 to 4095
 void tpm_fx::PalFillLong(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndexLong ,uint16_t indexAddLed, MixModeType mix_mode , TBlendType blending , boolean reversed , boolean mirror  , uint8_t mix_level , boolean onecolor )
 {
-	tpm_fx::PalFillLong( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndexLong, indexAddLed, mix_mode, 255,  blending );
-	tpm_fx::mixOntoLedArray(TempLedArray, OutputLedArray , numberOfLeds, StartLed , reversed , mirror , mix_mode , mix_level , onecolor );
+	tpm_fx::PalFillLong( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndexLong, indexAddLed, MIX_REPLACE, 255,  blending );
+	tpm_fx::mixHistoryOntoLedArray(TempLedArray, OutputLedArray ,  numberOfLeds, StartLed, reversed , mirror , mix_mode , mix_level , onecolor, StartLed,0 );
 }
 
 
@@ -495,14 +555,13 @@ void tpm_fx::PalFillLong(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 
 // Less cooling = taller flames.  More cooling = shorter flames.
 // Default 55, suggested range 20-100 
 //#define COOLING  55
-
+//
 // SPARKING: What chance (out of 255) is there that a new spark will be lit?
 // Higher chance = more roaring fire.  Lower chance = more flickery fire.
 // Default 120, suggested range 50-200.
 //#define SPARKING 120
 // Array of temperature readings at each simulation cell
 //static 
-
 void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t level, uint8_t cooling , uint8_t sparking, MixModeType mix_mode  ) 
 {
 	
@@ -537,12 +596,14 @@ void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray, byte heat[],CRGBPalette16
 			CRGB color;
 
 			color = ColorFromPalette(currentPalette,colorindex,level,LINEARBLEND); 
-            mixOntoLed(OutputLedArray, j, color, mix_mode);
+            mixOntoLed(OutputLedArray, j, color, mix_mode,255);
 		}
 
 	
 }
 
+
+// Fire Animation mixed onto OutputArray
 void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray,CRGB *TempLedArray, byte heat[],CRGBPalette16 currentPalette,  uint16_t start_led, uint16_t Nr_leds, uint8_t cooling , uint8_t sparking, MixModeType mix_mode , TBlendType blending , boolean reversed , boolean mirror  , uint8_t mix_level , boolean onecolor ) 
 {
 	tpm_fx::Fire2012WithPalette(TempLedArray, heat , currentPalette,  start_led, Nr_leds, 255, cooling , sparking, MIX_REPLACE  ) ;
@@ -552,21 +613,20 @@ void tpm_fx::Fire2012WithPalette(CRGB *OutputLedArray,CRGB *TempLedArray, byte h
 
 
 
-
-void tpm_fx::fadeLedArray(CRGB *OutputLedArray, uint16_t start_led, uint16_t nr_leds, uint8_t fadyBy)
+// Fade the OutputLedArray by fadeBy
+void tpm_fx::fadeLedArray(CRGB *OutputLedArray, uint16_t start_led, uint16_t nr_leds, uint8_t fadeBy)
 {
     for( int i = start_led; i < start_led + nr_leds ; i++) 
     {
-        OutputLedArray[i] = OutputLedArray[i].fadeToBlackBy(fadyBy);
-        
+        OutputLedArray[i] = OutputLedArray[i].fadeToBlackBy(fadeBy);       
     }
-
 }
 
 
 
 
 // Glitter effect origional code from  FastLed library examples DemoReel100
+// from palette
 void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGBPalette16 currentPalette,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds)
 {	
 
@@ -577,6 +637,9 @@ void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGBPalette16 currentPalette,fract8
 
 
 }
+
+// Glitter effect origional code from  FastLed library examples DemoReel100
+// from CRGB Color
 void tpm_fx::AddGlitter(CRGB *OutputLedArray,CRGB color,fract8 chanceOfGlitter, uint16_t start_led, uint16_t nr_leds, uint8_t level)
 {	
 
@@ -660,7 +723,7 @@ uint16_t  tpm_fx::Shimmer(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, u
 	color = ColorFromPalette(currentPalette,index,level,blend);
 
 	
-	mixOntoLed(OutputLedArray, i, color, mix_mode);
+	mixOntoLed(OutputLedArray, i, color, mix_mode,255);
 	//led_FX_out[i] = ColorFromPalette(LEDS_pal_cur[pal], index, 255, currentBlendingTB);   // With that value, look up the 8 bit colour palette value and assign it to the current LED.
   }
   
@@ -703,7 +766,7 @@ void tpm_fx::noise16fromPalette(CRGB *OutputLedArray,  CRGBPalette16 currentPale
     uint8_t bri   = noise;
 
 
-    mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, index, bri, blend), mix_mode);
+    mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, index, bri, blend), mix_mode,255);
 
   }
   
@@ -725,7 +788,7 @@ void tpm_fx::threeSinPalette(CRGB *OutputLedArray,  CRGBPalette16 currentPalette
  
     uint8_t tmp = sin8(distance*i + wave1) + sin8(distance*i + wave2) + sin8(distance*i + wave3);
 
-    mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, tmp, brightness, blend), mix_mode);
+    mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, tmp, brightness, blend), mix_mode,255);
  
     
   }
@@ -740,7 +803,7 @@ void tpm_fx::noise8(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint16_
     for (int i = StartLed; i < StartLed + NrLeds; i++)                                      // Just onE loop to fill up the LED array as all of the pixels change.
       {  
 		uint8_t index = inoise8(i * scale, dist + i * scale) % 255;            // Get a value from the noise function. I'm using both x and y axis.
-		mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, index, brightness, blend), mix_mode);
+		mixOntoLed(OutputLedArray, i, ColorFromPalette(currentPalette, index, brightness, blend), mix_mode,255);
         //OutputLedArray[i] = ColorFromPalette(currentPalette, index, brightness, LINEARBLEND);   // With that value, look up the 8 bit colour palette value and assign it to the current LED.
       }
       dist += beatsin8(10, 1, 4);                                              // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.    
@@ -766,16 +829,11 @@ void tpm_fx::strobe(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CR
 
 	if (frame_position  < on_Frames)
 	{
-			color.red  = 	map(color.red   ,	0,255,0,brightness );
-			color.green = 	map(color.green ,	0,255,0,brightness );
-			color.blue = 	map(color.blue ,	0,255,0,brightness );
-			
-
 
 		for( uint16_t i = StartLed; i < StartLed + NrLeds ; i++)
 		{
 			//tpm_fx::mixOntoLed(OutputLedArray, i, ColorFromPaletteExtended(currentPalette,colorIndexLong,brightness,blending) , mix_mode);
-			tpm_fx::mixOntoLed(OutputLedArray, i, color, mix_mode);
+			tpm_fx::mixOntoLed(OutputLedArray, i, color, mix_mode,brightness);
 
 		}
 	
@@ -800,8 +858,8 @@ void tpm_fx::BlinkingEyes(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLe
  
   for(int i = 0; i < EyeWidth; i++) 
   {
-	  tpm_fx::mixOntoLed(OutputLedArray, StartPoint + i, color, mix_mode);
-	  tpm_fx::mixOntoLed(OutputLedArray, Start2ndEye + i, color, mix_mode);
+	  tpm_fx::mixOntoLed(OutputLedArray, StartPoint + i, color, mix_mode,brightness);
+	  tpm_fx::mixOntoLed(OutputLedArray, Start2ndEye + i, color, mix_mode,brightness);
   }
  
 
@@ -833,7 +891,7 @@ void tpm_fx::meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds
       if( ( i-j < StartLed + NrLeds) && (i-j >= StartLed) ) 
 	  {
         //setPixel(i-j, red, green, blue);
-		tpm_fx::mixOntoLed(OutputLedArray, i-j, color, MIX_REPLACE);
+		tpm_fx::mixOntoLed(OutputLedArray, i-j, color, MIX_ADD);
       }
     }
    
@@ -841,3 +899,122 @@ void tpm_fx::meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds
     //delay(SpeedDelay);
   }
 }
+
+
+
+// KITT Animations
+// based on https://www.tweaking4all.com/hardware/arduino/adruino-led-strip-effects/#LEDStripEffectThenewKITT
+
+void tpm_fx::KITT_RightToLeft(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos, uint8_t EyeSize, MixModeType mix_mode, uint8_t brightness) 
+{
+
+	frame_pos = constrain(frame_pos, 0 ,NrLeds -EyeSize-2  ); 			//sanity check 
+  	uint16_t i = constrain(StartLed + NrLeds - EyeSize-2 - frame_pos , StartLed, StartLed+ NrLeds -1 );
+	CRGB faded_color = color;
+		 
+	faded_color.fadeLightBy(30);
+											tpm_fx::mixOntoLed(OutputLedArray, i			, faded_color , mix_mode,brightness);
+		for(int j = 1; j <= EyeSize; j++)  	tpm_fx::mixOntoLed(OutputLedArray, i+j			, color 	  , mix_mode,brightness);
+											tpm_fx::mixOntoLed(OutputLedArray, i+EyeSize+1 	, faded_color, mix_mode,brightness);
+
+}
+
+void tpm_fx::KITT_LeftToRight(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos, uint8_t EyeSize, MixModeType mix_mode, uint8_t brightness)
+ {
+
+	 frame_pos = constrain(frame_pos, 0 ,NrLeds -EyeSize-2  ); 			//sanity check 
+  	uint16_t i = constrain(StartLed + frame_pos , StartLed, StartLed+ NrLeds - EyeSize-2  );
+	
+	CRGB faded_color = color;
+		 
+	faded_color.fadeLightBy(30);
+  	
+											tpm_fx::mixOntoLed(OutputLedArray, i			, faded_color , mix_mode,brightness);
+		for(int j = 1; j <= EyeSize; j++)  	tpm_fx::mixOntoLed(OutputLedArray, i+j			, color 	  , mix_mode,brightness);
+											tpm_fx::mixOntoLed(OutputLedArray, i+EyeSize+1 	, faded_color , mix_mode,brightness);
+}
+
+/*
+void tpm_fx::KITT_CenterToOutside(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos, uint8_t EyeSize, MixModeType mix_mode, uint8_t brightness)
+{
+	frame_pos = constrain(frame_pos, 0 ,NrLeds/2 -EyeSize  ); 			//sanity check  -EyeSize-2
+  	uint16_t i = constrain(StartLed + frame_pos , StartLed, StartLed+ NrLeds  -EyeSize );
+
+  //for(int i =( StartLed + (NrLeds-EyeSize)/2); i>= StartLed; i--) {
+    //setAll(0,0,0);
+   
+    CRGB faded_color = color;
+	faded_color.fadeLightBy(30);
+
+
+										tpm_fx::mixOntoLed(OutputLedArray, i			, faded_color , mix_mode,brightness);
+	for(int j = 1; j <= EyeSize; j++)  	tpm_fx::mixOntoLed(OutputLedArray, i+j			, color 	  , mix_mode,brightness);
+										tpm_fx::mixOntoLed(OutputLedArray, i+EyeSize+1 	, faded_color , mix_mode,brightness);
+   
+
+										tpm_fx::mixOntoLed(OutputLedArray, i+frame_pos*2			, faded_color , mix_mode,brightness);
+	for(int j = 1; j <= EyeSize; j++)  	tpm_fx::mixOntoLed(OutputLedArray, i+j+frame_pos*2 			, color 	  , mix_mode,brightness);
+										tpm_fx::mixOntoLed(OutputLedArray, i+frame_pos*2 +EyeSize+1 	, faded_color , mix_mode,brightness);
+
+/*
+
+  for(int i =((NUM_LEDS-EyeSize)/2); i>=0; i--) {
+    setAll(0,0,0);
+   
+    setPixel(i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixel(i+j, red, green, blue);
+    }
+    setPixel(i+EyeSize+1, red/10, green/10, blue/10);
+   
+
+
+    setPixel(NUM_LEDS-i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixel(NUM_LEDS-i-j, red, green, blue);
+    }
+    setPixel(NUM_LEDS-i-EyeSize-1, red/10, green/10, blue/10);
+   
+    showStrip();
+    delay(SpeedDelay);
+  }
+  delay(ReturnDelay); 
+}
+
+/*
+void OutsideToCenter(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, int ReturnDelay) {
+  for(int i = 0; i<=((NUM_LEDS-EyeSize)/2); i++) {
+    setAll(0,0,0);
+   
+    setPixel(i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixel(i+j, red, green, blue);
+    }
+    setPixel(i+EyeSize+1, red/10, green/10, blue/10);
+   
+    setPixel(NUM_LEDS-i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixel(NUM_LEDS-i-j, red, green, blue);
+    }
+    setPixel(NUM_LEDS-i-EyeSize-1, red/10, green/10, blue/10);
+   
+    showStrip();
+    delay(SpeedDelay);
+  }
+  delay(ReturnDelay);
+}
+
+
+void NewKITT(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, int ReturnDelay){
+  RightToLeft(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  LeftToRight(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  OutsideToCenter(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  CenterToOutside(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  LeftToRight(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  RightToLeft(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  OutsideToCenter(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+  CenterToOutside(red, green, blue, EyeSize, SpeedDelay, ReturnDelay);
+}
+
+
+*/

@@ -89,9 +89,11 @@ class tpm_fx
       void DotSaw(CRGB *OutputLedArray, CRGBPalette16 currentPalette, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm, uint8_t brightness = 255 );
       void DotSaw(CRGB *OutputLedArray, CRGB inputcolor, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm, uint8_t brightness = 255);
 
+      void KITT_RightToLeft(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos, uint8_t EyeSize, MixModeType mix_mode, uint8_t brightness) ;
+      void KITT_LeftToRight(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos, uint8_t EyeSize, MixModeType mix_mode, uint8_t brightness) ;
 
       // Manipulate Layer
-      void fadeLedArray(CRGB *OutputLedArray, uint16_t start_led, uint16_t nr_leds, uint8_t fadyBy);
+      void fadeLedArray(CRGB *OutputLedArray, uint16_t start_led, uint16_t nr_leds, uint8_t fadeBy);
 
   // Mixing
       // Mix one led array with another one
@@ -105,8 +107,12 @@ class tpm_fx
 
 
       // Mix color onto led
-      void mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode);
+      void mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixModeType mode, uint8_t level =255);
 
+    // Modify
+
+     void rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, uint16_t rotateAmount = 0);
+     void rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t framesFullRotation, uint16_t framePos);
 
   //private:
       // Palette Get
