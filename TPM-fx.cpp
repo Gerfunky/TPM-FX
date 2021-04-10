@@ -19,12 +19,14 @@ boolean isODDNum(uint8_t number)
 }
 
 // Rotate animation
-void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t framesFullRotation, uint16_t framePos)
+void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t framesFullRotation, uint16_t framePos, boolean reversed)
 {		 
 
 	//uint16_t rotatePosition =  ((nr_leds*100) / framesFullRotation)  * framePos /100;
 	
-	unsigned long rotatePosition =  ((nr_leds*1000) / framesFullRotation)  * framePos / 1000;
+	unsigned long rotatePosition = 0; 
+	if (reversed == false) 	rotatePosition =  ((nr_leds*1000) / framesFullRotation)  * framePos / 1000;
+	else 					rotatePosition =  nr_leds - (((nr_leds*1000) / framesFullRotation)  * framePos / 1000 );
 
 
 	tpm_fx::rotate(OutputLedArray ,  nr_leds,  start_led,  uint16_t(rotatePosition)) ;
@@ -32,7 +34,7 @@ void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led,
 }
 
 
-// Rotate by fixed amount
+// Rotate by fixed amount of pixel
 void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t rotateAmount)
 {		
 
@@ -58,6 +60,37 @@ void tpm_fx::rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led,
 	}
 }
 
+void tpm_fx::reverse(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led)
+{		
+		CRGB color[nr_leds];
+		uint8_t oddbump = isODDNum(nr_leds) ;
+
+		for(uint16_t post_led_num = 0; post_led_num < nr_leds / 2  ; post_led_num++ )
+		{
+			color[nr_leds - 1 - post_led_num ] = OutputLedArray[ start_led + post_led_num];
+			OutputLedArray[ start_led +post_led_num  ] = OutputLedArray[start_led + nr_leds - post_led_num -1   ];
+		}
+
+		for(uint16_t post_led_num = nr_leds/2 + oddbump  ; post_led_num >=  nr_leds ; post_led_num++ )
+			OutputLedArray[start_led + post_led_num  ] = color[  post_led_num ];
+
+	
+}
+
+void tpm_fx::mirror(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed)
+{		
+		CRGB color[nr_leds];
+		//uint8_t oddbump = isODDNum(nr_leds) ;
+
+		
+		for(uint16_t post_led_num = 0; post_led_num < nr_leds / 2  ; post_led_num++ )
+		{
+			if (reversed) 	OutputLedArray[ start_led + nr_leds - post_led_num -1 ] = OutputLedArray[  start_led + post_led_num  ];
+			else  			OutputLedArray[ start_led + post_led_num ] 				= OutputLedArray[  start_led + nr_leds - post_led_num -1  ];
+		
+		}
+	
+}
 
 
 // Mixing

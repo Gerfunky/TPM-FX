@@ -112,7 +112,10 @@ class tpm_fx
     // Modify
 
      void rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, uint16_t rotateAmount = 0);
-     void rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t framesFullRotation, uint16_t framePos);
+     void rotate(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, uint16_t framesFullRotation, uint16_t framePos, boolean reversed = false);
+
+     void reverse(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led);
+     void mirror(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed = false);
 
   //private:
       // Palette Get
