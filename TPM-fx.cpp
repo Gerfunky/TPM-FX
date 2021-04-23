@@ -2,6 +2,15 @@
 #include "TPM-fx.h"
 
 
+
+
+
+
+
+
+
+
+
 // Tool functions
 
 // return True if OddNumber
@@ -170,9 +179,9 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			else 											        OutputLedArray[led_nr].blue =  	qsub8(color.blue,			 	OutputLedArray[led_nr].blue );
 		break;
 		case MIX_HARD:
-			if( (255 - OutputLedArray[led_nr].red ) 		>= color.red )  		OutputLedArray[led_nr].red =  	0 ; else OutputLedArray[led_nr].red = 255;
-			if( (255 - OutputLedArray[led_nr].green )   	>= color.green )  		OutputLedArray[led_nr].green =  0 ; else OutputLedArray[led_nr].green = 255;
-			if ((255 - OutputLedArray[led_nr].blue )  		>= color.blue )  		OutputLedArray[led_nr].blue =  	0 ; else OutputLedArray[led_nr].blue = 255;			
+			OutputLedArray[led_nr].red 		= ChannelBlend_HardMix(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_HardMix(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_HardMix(OutputLedArray[led_nr].green ,color.green ) ;		
 		break; //*/
 		case MIX_MULTIPLY:
 
@@ -185,92 +194,44 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 		//	OutputLedArray[led_nr].green =  constrain(OutputLedArray[led_nr].green  *   color.green, 0,255) ;
 		//	OutputLedArray[led_nr].blue =   constrain(OutputLedArray[led_nr].blue  *   color.blue, 0,255) ;
 		break;
-	#ifdef NOKDUDE
-		case MIX_HARD_LIGHT:
-
-
-			if (color.red <= 128 )  					 	OutputLedArray[led_nr].red =    255 * 2 * topRed * botRed ;
-			else 											OutputLedArray[led_nr].red =    255 * ( 1 - 2 * ( 1 - topRed) * (1 - botRed));
-			if (color.green <= 128 )  	 					OutputLedArray[led_nr].green =  255 * 2 * topGreen * botGreen ;
-			else 											OutputLedArray[led_nr].green =  255 * ( 1 - 2 * ( 1 - topGreen) * (1 - botGreen));
-			if (color.red <= 128 )  	 					OutputLedArray[led_nr].blue =   255 * 2 * topBlue * botBlue ;
-			else 											OutputLedArray[led_nr].blue =   255 * ( 1 - 2 * ( 1 - topBlue) * (1 - botBlue));
-		break;
-
-/*		case MIX_HARD_LIGHT:
-			if (color.getLuma() >= 128)
-			{
-					OutputLedArray[led_nr].red =  	qadd8(OutputLedArray[led_nr].red ,  	color.red );
-					OutputLedArray[led_nr].green =  	qadd8(OutputLedArray[led_nr].green , color.green );
-					OutputLedArray[led_nr].blue =  	qadd8(OutputLedArray[led_nr].blue ,  color.blue );
-
-			}
-			else
-			{
-					OutputLedArray[led_nr].red =  	qsub8(OutputLedArray[led_nr].red,	color.red  );
-					OutputLedArray[led_nr].green =  	qsub8(OutputLedArray[led_nr].green,	color.green  );
-					OutputLedArray[led_nr].blue =  	qsub8(OutputLedArray[led_nr].blue,	color.blue  );
-			}
-		break;
-/*		case MIX_OVERLAY:
-			if (color.getLuma() < 128)
-			{
-				OutputLedArray[led_nr].red =  	constrain(OutputLedArray[led_nr].red  *   color.red, 0,255) ; 
-				OutputLedArray[led_nr].green =  	constrain(OutputLedArray[led_nr].green  *   color.green, 0,255) ; 
-				OutputLedArray[led_nr].blue =  	constrain(OutputLedArray[led_nr].blue  *   color.blue, 0,255) ; 
-
-			}
-			else
-			{
-				OutputLedArray[led_nr].red =  	constrain(OutputLedArray[led_nr].red  *   (255-color.red), 0,255) ;
-				OutputLedArray[led_nr].green =  	constrain(OutputLedArray[led_nr].green  *  (255 -color.green ), 0,255) ;
-				OutputLedArray[led_nr].blue =  	constrain(OutputLedArray[led_nr].blue  *   (255-color.blue), 0,255) ; 
-
-			}
-		break;  //*/
-		
-		case MIX_OVERLAY:
 	
+		case MIX_HARD_LIGHT:
+			OutputLedArray[led_nr].red 		= ChannelBlend_HardLight(OutputLedArray[led_nr].red		, color.red) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_HardLight(OutputLedArray[led_nr].green	, color.green); 
+			OutputLedArray[led_nr].blue 	= ChannelBlend_HardLight(OutputLedArray[led_nr].blue	, color.blue) ;
+			
+		break;
 
-			if (OutputLedArray[led_nr].red <= 128 )  	 	OutputLedArray[led_nr].red =    255 * 2 * topRed * botRed ;
+		case MIX_OVERLAY:
+			OutputLedArray[led_nr].red = ChannelBlend_Overlay(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue = ChannelBlend_Overlay(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green = ChannelBlend_Overlay(OutputLedArray[led_nr].green ,color.green ) ;
+		/*	if (OutputLedArray[led_nr].red <= 128 )  	 	OutputLedArray[led_nr].red =    255 * 2 * topRed * botRed ;
 			else 											OutputLedArray[led_nr].red =    255 * ( 1 - 2 * ( 1 - topRed) * (1 - botRed));
 			if (OutputLedArray[led_nr].green <= 128 )  	 	OutputLedArray[led_nr].green =  255 * 2 * topGreen * botGreen ;
 			else 											OutputLedArray[led_nr].green =  255 * ( 1 - 2 * ( 1 - topGreen) * (1 - botGreen));
 			if (OutputLedArray[led_nr].red <= 128 )  	 	OutputLedArray[led_nr].blue =   255 * 2 * topBlue * botBlue ;
-			else 											OutputLedArray[led_nr].blue =   255 * ( 1 - 2 * ( 1 - topBlue) * (1 - botBlue));
+			else 											OutputLedArray[led_nr].blue =   255 * ( 1 - 2 * ( 1 - topBlue) * (1 - botBlue));  */
 		break;
 
-	#endif 
+	
 
 
-		case MIX_TADA:
-			if( OutputLedArray[led_nr].red  >=  color.red )  	OutputLedArray[led_nr].red =  	OutputLedArray[led_nr].red - (OutputLedArray[led_nr].red - color.red) ;
-			else 											OutputLedArray[led_nr].red =  	OutputLedArray[led_nr].red + (OutputLedArray[led_nr].red - color.red);
-			if( OutputLedArray[led_nr].green  >=  color.green )  OutputLedArray[led_nr].green =  	OutputLedArray[led_nr].green - (OutputLedArray[led_nr].green - color.green);
-			else 											OutputLedArray[led_nr].green =  	OutputLedArray[led_nr].green + (OutputLedArray[led_nr].green - color.green);
-			if( OutputLedArray[led_nr].blue  >=  color.blue )  	OutputLedArray[led_nr].blue =  	OutputLedArray[led_nr].blue - (OutputLedArray[led_nr].blue - color.blue) ;
-			else 											OutputLedArray[led_nr].blue =  	OutputLedArray[led_nr].blue + (OutputLedArray[led_nr].blue - color.blue);
-
-			OutputLedArray[led_nr].red =  		constrain(OutputLedArray[led_nr].red  *  	color.red, 0,255) ;
-			OutputLedArray[led_nr].green =  		constrain(OutputLedArray[led_nr].green  *   	color.green, 0,255) ; 
-			OutputLedArray[led_nr].blue =  		constrain(OutputLedArray[led_nr].blue  *   	color.blue, 0,255) ; 
+		case MIX_AVARAGE:
+			OutputLedArray[led_nr].red 		= ChannelBlend_Average(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Average(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Average(OutputLedArray[led_nr].green ,color.green ) ;
 		break;
 		
 		case MIX_DARKEN:
-			if( OutputLedArray[led_nr].red  <  color.red )  		OutputLedArray[led_nr].red =  	OutputLedArray[led_nr].red ;
-			else 											OutputLedArray[led_nr].red =  	color.red;
-			if( OutputLedArray[led_nr].green  <  color.green )  	OutputLedArray[led_nr].green =  	OutputLedArray[led_nr].green ;
-			else 											OutputLedArray[led_nr].green =  	color.green;
-			if( OutputLedArray[led_nr].blue  <  color.blue )  	OutputLedArray[led_nr].blue =  	OutputLedArray[led_nr].blue ;
-			else 											OutputLedArray[led_nr].blue =  	color.blue;
+			OutputLedArray[led_nr].red 		= ChannelBlend_Darken(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Darken(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Darken(OutputLedArray[led_nr].green ,color.green ) ;
 		break;
 		case MIX_LIGHTEN:
-			if( OutputLedArray[led_nr].red  >=  color.red )  	OutputLedArray[led_nr].red =  	OutputLedArray[led_nr].red ;
-			else 											OutputLedArray[led_nr].red =  	color.red;
-			if( OutputLedArray[led_nr].green  >=  color.green )  OutputLedArray[led_nr].green =  	OutputLedArray[led_nr].green ;
-			else 											OutputLedArray[led_nr].green =  	color.green;
-			if( OutputLedArray[led_nr].blue  >=  color.blue )  	OutputLedArray[led_nr].blue =  	OutputLedArray[led_nr].blue ;
-			else 											OutputLedArray[led_nr].blue =  	color.blue;
+			OutputLedArray[led_nr].red 		= ChannelBlend_Lighten(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Lighten(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Lighten(OutputLedArray[led_nr].green ,color.green ) ;
 		break;
 		case MIX_LINEAR_BURN:
 			OutputLedArray[led_nr].red   = constrain(OutputLedArray[led_nr].red    + color.red   ,0,255 )  - 255   ;
@@ -278,29 +239,85 @@ void tpm_fx::mixOntoLed(CRGB *OutputLedArray, uint16_t led_nr, CRGB color, MixMo
 			OutputLedArray[led_nr].blue  = constrain(OutputLedArray[led_nr].blue   + color.blue  ,0,255)   - 255 ;
 		break;
 		case MIX_SCREEN:  // 255-(255-topLayer)*(255-botLayer)/255;
-			OutputLedArray[led_nr].red   = 255 - (255 - color.red     * (255  - OutputLedArray[led_nr].red)	/255);
-			OutputLedArray[led_nr].green = 255 - (255 - color.green * (255 - OutputLedArray[led_nr].green) 	/255);
-			OutputLedArray[led_nr].blue  = 255 - (255 - color.blue  * (255 - OutputLedArray[led_nr].blue )	/255);
+			OutputLedArray[led_nr].red 		= ChannelBlend_Screen(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Screen(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Screen(OutputLedArray[led_nr].green ,color.green ) ;
 		break;
 		case MIX_COLOR_DODGE: // constrain(255*botLayer/(255-topLayer), 0,255);
-			OutputLedArray[led_nr].red   = constrain(255 * OutputLedArray[led_nr].red  /(256-color.red ), 0,255);  //  color.red   / (255 - OutputLedArray[led_nr].red );
-			OutputLedArray[led_nr].green = constrain(255 * OutputLedArray[led_nr].green  /(256-color.green ), 0,255); 
-			OutputLedArray[led_nr].blue  = constrain(255 * OutputLedArray[led_nr].blue  /(256-color.blue ), 0,255); 
+			OutputLedArray[led_nr].red 		= ChannelBlend_ColorDodge(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_ColorDodge(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_ColorDodge(OutputLedArray[led_nr].green ,color.green ) ;
 		break;
 		case MIX_COLOR_BURN:
-			OutputLedArray[led_nr].red = 255 - (255   - OutputLedArray[led_nr].red)   / color.red ;
-			OutputLedArray[led_nr].green = 255 - (255 - OutputLedArray[led_nr].green) / color.green ;
-			OutputLedArray[led_nr].blue = 255 - (255  - OutputLedArray[led_nr].blue)  / color.blue;
+			OutputLedArray[led_nr].red 		= ChannelBlend_ColorBurn(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_ColorBurn(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_ColorBurn(OutputLedArray[led_nr].green ,color.green ) ;
 		break;
 		
-/*		case MIX_LINEAR_BURN:
-			if( qadd8(OutputLedArray[led_nr].red ,  	color.red ) 	== 255 )  		OutputLedArray[led_nr].red =  	255 ; else OutputLedArray[led_nr].red = 0;
-			if( qadd8(OutputLedArray[led_nr].green ,  color.green ) 	== 255 )  		OutputLedArray[led_nr].green =  	255 ; else OutputLedArray[led_nr].green = 0;
-			if( qadd8(OutputLedArray[led_nr].blue ,  color.blue ) 	== 255 )  		OutputLedArray[led_nr].blue =  	255 ; else OutputLedArray[led_nr].blue = 0;			
-		break;   //*/
+		case MIX_EXCLUSION:
+			OutputLedArray[led_nr].red 		= ChannelBlend_Exclusion(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Exclusion(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Exclusion(OutputLedArray[led_nr].green ,color.green ) ;
+		break;   
+
+		case MIX_NEGATION:
+			OutputLedArray[led_nr].red 		= ChannelBlend_Negation(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Negation(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Negation(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_PHOENIX:
+			OutputLedArray[led_nr].red 		= ChannelBlend_Phoenix(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Phoenix(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Phoenix(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_LINEAR_LIGHT:
+			OutputLedArray[led_nr].red 		= ChannelBlend_LinearLight(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_LinearLight(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_LinearLight(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_VIVID_LIGHT:
+			OutputLedArray[led_nr].red 		= ChannelBlend_VividLight(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_VividLight(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_VividLight(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_PIN_LIGHT:
+			OutputLedArray[led_nr].red 		= ChannelBlend_PinLight(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_PinLight(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_PinLight(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_REFLECT:
+			OutputLedArray[led_nr].red 		= ChannelBlend_Reflect(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Reflect(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Reflect(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_GLOW:
+			OutputLedArray[led_nr].red 		= ChannelBlend_Glow(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_Glow(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_Glow(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_SOFT_LIGHT:
+			OutputLedArray[led_nr].red 		= ChannelBlend_SoftLight(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_SoftLight(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_SoftLight(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
+
+		case MIX_LINEAR_DODGE:
+			OutputLedArray[led_nr].red 		= ChannelBlend_LinearDodge(OutputLedArray[led_nr].red ,color.red ) ;
+			OutputLedArray[led_nr].blue 	= ChannelBlend_LinearDodge(OutputLedArray[led_nr].blue ,color.blue ) ;
+			OutputLedArray[led_nr].green 	= ChannelBlend_LinearDodge(OutputLedArray[led_nr].green ,color.green ) ;
+		break; 
 
 
-		default: Serial.println("noMix");
+
+		default: 
+		//Serial.println("noMix");
 		break; 
 	}
 
