@@ -1,6 +1,6 @@
 
 #include "TPM-fx.h"
-
+	
 
 
 
@@ -337,69 +337,162 @@ void tpm_fx::mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_
 
 // Mixes a InputArray onto the OutputArray for example FFT data where every frame is a new color is inserted on position 0. 
 // InputArray start possiton = 0 + offset(0) 
-void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset, uint8_t extend )
+
+void tpm_fx::mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset, uint8_t extend ,uint8_t extend_tick, uint8_t colorSelect)
 {
-	CRGB color;
+	CRGB color = {0,0,0};
 	uint8_t extend_counter = 0;
 	uint16_t get_plus_led_nr = offset;
 	uint16_t get_minus_led_nr = offset + nr_leds - 1;
 	uint16_t get_led_nr = offset;
 
-	uint16_t real_post_led_num;
+	uint16_t real_post_led_num = 0;
 	uint8_t oddNumberBump = isODDNum(nr_leds);
+
+	
+
+		
+					
 
 	if(nr_leds != 0)
 	{
-		 for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds   ; post_led_num ++ )
+		if (extend != 0  )
+		{
+			get_plus_led_nr = get_plus_led_nr + extend_tick  ;
+
+			
+		}
+
+		 for(uint16_t post_led_num = start_led; post_led_num < start_led + nr_leds    ; post_led_num ++ )
         {	
+			uint16_t position = (post_led_num - start_led );
+
+
+
+			if ( mirror  && position == nr_leds/2 + oddNumberBump    )
+			{
+			
+				extend_counter = 0; 
+
+				get_plus_led_nr = offset + extend_tick  ;	
+
+				if (reversed) 
+				{
+					if (extend == 0 ) get_plus_led_nr = get_plus_led_nr  + oddNumberBump  ; 
+					
+				
+				}
+				  
+			}
+
 
 			
 			if(onecolor)
 			{
-				get_led_nr = offset;
+				get_led_nr = offset + extend_tick ;
 				real_post_led_num = post_led_num;
 			}
-			else if(post_led_num - start_led <  nr_leds/2 + oddNumberBump)
+			else if( position <  nr_leds/2 + oddNumberBump)
 			{
 				
-				if      (!mirror &&  !reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
-				else if (!mirror &&   reversed )	{get_led_nr = get_minus_led_nr; real_post_led_num = post_led_num;}  
+				if      (  !mirror && !reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
+				else if (  !mirror &&  reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led + nr_leds - 1) - position  ;}  
 				else if ( mirror &&  !reversed )  	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
-				else if ( mirror &&   reversed ) 	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led + nr_leds/2 -1 + oddNumberBump) - ( post_led_num -  start_led ) ;}	
-
+				else if ( mirror &&   reversed )    {get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led + nr_leds/2 -1 + oddNumberBump)  - position  ;} 
+				
+				
+				
 			}
 			else
 			{
-
-				if (post_led_num - start_led ==  nr_leds/2 + oddNumberBump  && mirror && !reversed )  { get_plus_led_nr = offset;   extend_counter = 0;}
-				if (post_led_num - start_led ==  nr_leds/2 + oddNumberBump  && mirror &&  reversed )  { get_plus_led_nr = offset + oddNumberBump ;   extend_counter = 0;}
-		
 				if      (!mirror &&  !reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num;}
-				else if (!mirror &&   reversed )	{get_led_nr = get_minus_led_nr; real_post_led_num = post_led_num;}  
-				else if ( mirror &&  !reversed )  	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led  + nr_leds -1 + oddNumberBump ) - ( post_led_num - nr_leds/2 - start_led  ) ;}
-				else if ( mirror &&   reversed ) 	{get_led_nr = get_plus_led_nr;  real_post_led_num = post_led_num  ;}
+				else if (!mirror &&   reversed )	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led + nr_leds - 1) - position;} 
+				else if ( mirror &&  !reversed )  	{get_led_nr = get_plus_led_nr;  real_post_led_num = (start_led  + nr_leds -1 + oddNumberBump ) - ( position - nr_leds/2 -1 )-1   ;}
+				
+				else if ( mirror &&   reversed ) 	{get_led_nr = get_plus_led_nr;  real_post_led_num =  (start_led + nr_leds/2 -1 )  +   ( position - nr_leds/2+1   )        ;}
+				
 
 			}
+			/*
+			if (position < 20)
+				{
 
-			color = InputLedArray[get_led_nr]  ;
+					Serial.print(get_led_nr)  ;  
+					Serial.print("-")  ;  
+				}  
+				//*/
+
+			switch(colorSelect)
+			{
+				case COLOR_RGB:
+					color = InputLedArray[get_led_nr]  ;
+				break;	
+				case COLOR_R:
+					color.r = InputLedArray[get_led_nr].r;
+				break;
+				case COLOR_G:
+					color.g = InputLedArray[get_led_nr].g;
+				break;
+				case COLOR_B:
+					color.b = InputLedArray[get_led_nr].b;
+				break;
+				case COLOR_RG:
+					color.r = InputLedArray[get_led_nr].r;
+					color.g = InputLedArray[get_led_nr].g;
+				break;
+				case COLOR_GB:
+					color.g = InputLedArray[get_led_nr].g;
+					color.b = InputLedArray[get_led_nr].b ;
+				break;
+				case COLOR_RB:
+					color.r = InputLedArray[get_led_nr].r;
+					color.b = InputLedArray[get_led_nr].b;
+				break;
+				default:
+					color = InputLedArray[get_led_nr];
+				break;	
+			}
+
+
+		
+
 
 
 			tpm_fx::mixOntoLed(OutputLedArray, real_post_led_num, color, mix_mode ,mix_level );
 		
-			if (extend_counter >= extend )
+
+
+
+
+
+			if (extend == 0)
+					{
+						get_plus_led_nr++;
+						get_minus_led_nr--;
+					}
+
+			else if  (  ( position == extend_tick ) ||  ( extend_counter >= extend  )  ||  (mirror && position ==   nr_leds/2 + oddNumberBump + extend_tick  ) )
 			{
-				get_plus_led_nr++;
-				get_minus_led_nr--;
+				 
+					 
+					{
+
+
+						get_plus_led_nr = get_plus_led_nr + extend+1   ;
+						get_minus_led_nr = get_minus_led_nr - extend -1   ;
+					}
+
+					extend_counter = 0 ;
 				
 
-				extend_counter = 0 ;
-				
+
 			}
+			
 			else extend_counter++;
 		}
 
 	}
-
+	//Serial.println("-----")  ;  
 
 }
 
@@ -536,7 +629,7 @@ void tpm_fx::PalFill( CRGB *OutputLedArray, CRGBPalette16 currentPalette , uint1
 void tpm_fx::PalFill(CRGB *OutputLedArray,CRGB *TempLedArray, CRGBPalette16 currentPalette, uint16_t StartLed, uint16_t numberOfLeds , uint16_t colorIndex ,uint16_t indexAddLed, MixModeType mix_mode , TBlendType blending , boolean reversed , boolean mirror  , uint8_t mix_level , boolean onecolor )
 {
     
-    tpm_fx::PalFill( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndex, indexAddLed, mix_mode, 255,  blending );
+    tpm_fx::PalFill( TempLedArray, currentPalette , StartLed, numberOfLeds , colorIndex, indexAddLed, MIX_REPLACE, 255,  blending );
 	tpm_fx::mixOntoLedArray(TempLedArray, OutputLedArray , numberOfLeds, StartLed , reversed , mirror , mix_mode , mix_level , onecolor );
 	
 	
@@ -668,7 +761,8 @@ void tpm_fx::fadeLedArray(CRGB *OutputLedArray, uint16_t start_led, uint16_t nr_
 {
     for( int i = start_led; i < start_led + nr_leds ; i++) 
     {
-        OutputLedArray[i] = OutputLedArray[i].fadeToBlackBy(fadeBy);       
+        OutputLedArray[i] = OutputLedArray[i].fadeToBlackBy(fadeBy);   
+		
     }
 }
 
@@ -737,7 +831,7 @@ void tpm_fx::DotSaw(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, uin
 		byte dothue = 64;
 		for (int i = 0; i < nr_dots; i++)
 		{
-			OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds - 1)] |= CHSV(inputhue + dothue, Saturation, brightness);
+			OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds )] |= CHSV(inputhue + dothue, Saturation, brightness);
 			dothue += (255 / nr_dots);
 		}
 
@@ -745,14 +839,14 @@ void tpm_fx::DotSaw(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, uin
 
 void tpm_fx::DotSaw(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm , uint8_t brightness )  // Saw Dots that run in cirles in the form
 {	
-	for (int i = 0; i < nr_dots; i++)	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds - 1)] |= ColorFromPalette(currentPalette, i* 16 ,brightness,LINEARBLEND) ;
+	for (int i = 0; i < nr_dots; i++)	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds )] |= ColorFromPalette(currentPalette, i* 16 ,brightness,LINEARBLEND) ;
 
 }
 
 void tpm_fx::DotSaw(CRGB *OutputLedArray,CRGB inputcolor, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm , uint8_t brightness )  // Saw Dots that run in cirles in the form
 {	
     inputcolor.nscale8(brightness); 
-	for (int i = 0; i < nr_dots; i++) 	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds - 1)] |= inputcolor;
+	for (int i = 0; i < nr_dots; i++) 	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds)] |= inputcolor;
   
 
 }
@@ -917,31 +1011,41 @@ void tpm_fx::BlinkingEyes(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLe
 }
 
 
-void tpm_fx::meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos,  byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay) {  
+void tpm_fx::meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos,  byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay , byte level) {  
   //setAll(0,0,0);
  
   int i = frame_pos; // for(int i = 0; i < NrLeds+NrLeds; i++) 
-
+	
   
   {
-   
+ 
    
     // fade brightness all LEDs one step
-    for(int j=StartLed; j< StartLed + NrLeds; j++) {
+    for(int j=StartLed; j< StartLed + NrLeds; j++) 
+	{
+		boolean x = true;
       if( (!meteorRandomDecay) || (random(10)>5) ) 
 	  {
+		  x = false;
 		//fadeToBlackBy(&color,1,   meteorTrailDecay);  
         //fadeToBlack(j, meteorTrailDecay );  
-		tpm_fx::fadeLedArray(OutputLedArray, j,1, meteorTrailDecay)   ;   
+		tpm_fx::fadeLedArray(OutputLedArray, j,1, meteorTrailDecay)   ; 
+
+	
       }
+
     }
+
    
     // draw meteor
     for(int j = 0; j < meteorSize; j++) {
-      if( ( i-j < StartLed + NrLeds) && (i-j >= StartLed) ) 
+      if( ( i-j +StartLed < StartLed + NrLeds) && (i-j+StartLed >= StartLed) ) 
 	  {
+		
         //setPixel(i-j, red, green, blue);
-		tpm_fx::mixOntoLed(OutputLedArray, i-j, color, MIX_ADD);
+		tpm_fx::mixOntoLed(OutputLedArray, i-j + StartLed , color, MIX_ADD, level );
+		//if (i-j + StartLed == 10) { Serial.print("X-X : ") ; Serial.println(String(OutputLedArray[10].r)); 
+		//Serial.println(String(color.r));  }
       }
     }
    
@@ -983,6 +1087,102 @@ void tpm_fx::KITT_LeftToRight(CRGB *OutputLedArray, uint16_t StartLed, uint16_t 
 		for(int j = 1; j <= EyeSize; j++)  	tpm_fx::mixOntoLed(OutputLedArray, i+j			, color 	  , mix_mode,brightness);
 											tpm_fx::mixOntoLed(OutputLedArray, i+EyeSize+1 	, faded_color , mix_mode,brightness);
 }
+
+void tpm_fx::CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value , uint8_t length )
+ {
+
+	 uint16_t pos = 0;
+
+
+	 if ( hour_bool == true)  		pos = NrLeds * Value / 24 ;
+	 else 							pos =  NrLeds * Value / 60 ;
+
+	
+
+
+	if (clock_type == CLOCK_DOT) 
+	{
+		if (length > 1)
+		{
+			
+			uint16_t halft_length = length/2;
+			//uint16_t new_pos = 0 :
+
+			if (pos > halft_length   && pos < NrLeds - halft_length -1   )
+			{
+					for (uint16_t i = pos-halft_length  ; i <= pos + halft_length-1 ; i++)  tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
+
+			}
+
+			else if ( pos <= halft_length + isODDNum(NrLeds) )
+				{
+					for (uint16_t i = 0; i < pos + halft_length + isODDNum(NrLeds)  ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
+
+					for (uint16_t i = NrLeds -  (length - (pos + halft_length + isODDNum(NrLeds) )) ; i < NrLeds ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
+
+				}
+			else if (pos >= NrLeds - halft_length -1 )
+				{
+					for (uint16_t i = pos - halft_length-1  ; i < NrLeds ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
+
+					for (uint16_t i = 0 ; i < length -  NrLeds - pos    ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
+				}
+						
+		}
+		else  tpm_fx::mixOntoLed(OutputLedArray, pos + StartLed, color , mix_mode,brightness);
+		
+
+
+		
+
+
+	}
+	
+	
+
+	
+	
+	
+	
+	
+	else if (clock_type == CLOCK_BAR) for( uint16_t i = StartLed; i <= StartLed + pos ; i++)  tpm_fx::mixOntoLed(OutputLedArray, i, color, mix_mode, brightness);
+
+
+
+
+}
+
+void tpm_fx::CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, uint16_t NrLeds, CRGBPalette16 currentPalette , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t pal_index, uint16_t index_add , TBlendType blending, boolean reversed , boolean mirror  ,  boolean onecolor   )
+ {
+
+	 uint16_t pos = 0;
+
+
+	 if ( hour_bool == true)  		pos = NrLeds * Value / 24 ;
+	 else 							pos =  NrLeds * Value / 60 ;
+
+
+
+	if (clock_type == CLOCK_DOT)       tpm_fx::PalFillLong(OutputLedArray,TempLedArray, currentPalette, StartLed+pos,  1 ,  pal_index , index_add, mix_mode ,  blending ,  reversed ,  mirror  , brightness  , onecolor );
+	else  if (clock_type == CLOCK_BAR) tpm_fx::PalFillLong(OutputLedArray,TempLedArray, currentPalette, StartLed,  pos+1 ,  pal_index , index_add, mix_mode ,  blending ,  reversed ,  mirror  , brightness  , onecolor );
+
+
+}
+
+// Clock with a history Led array as an input. (FFT)
+void tpm_fx::CLOCK(CRGB *InputLedArray, CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t offset, uint16_t extend ,uint8_t extend_tick, uint8_t colorSelect, boolean reversed , boolean mirror  ,  boolean onecolor   )
+ {
+
+	 uint16_t pos = 0;
+
+
+	 if ( hour_bool == true)  		pos = NrLeds * Value / 24 ;
+	 else 							pos =  NrLeds * Value / 60 ;
+
+	tpm_fx::mixHistoryOntoLedArray(InputLedArray, OutputLedArray , pos+1 , StartLed , reversed, mirror , mix_mode,  brightness,  onecolor, offset, extend ,extend_tick, colorSelect);
+
+}
+
 
 /*
 void tpm_fx::KITT_CenterToOutside(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos, uint8_t EyeSize, MixModeType mix_mode, uint8_t brightness)

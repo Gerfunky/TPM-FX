@@ -5,6 +5,16 @@
 #include "Arduino.h"
 #include <FastLED.h>
 
+typedef enum {
+      COLOR_RGB = 0
+      ,COLOR_R = 1
+      ,COLOR_G = 2
+      ,COLOR_B = 3
+      ,COLOR_RG = 4
+      ,COLOR_GB = 5
+      ,COLOR_RB = 6
+} ColorModeType;
+
 
 
 typedef enum {
@@ -32,14 +42,14 @@ typedef enum {
           ,MIX_LINEAR_BURN = 16
           ,MIX_COLOR_BURN = 17
 
-          ,MIX_LINEAR_DODGE = 18   // NOK fps drom
+          ,MIX_LINEAR_DODGE = 18   
           ,MIX_COLOR_DODGE = 19
 
           ,MIX_HARD_LIGHT = 20
           ,MIX_VIVID_LIGHT = 21
           ,MIX_PIN_LIGHT = 22
           ,MIX_LINEAR_LIGHT = 23
-          ,MIX_SOFT_LIGHT = 24    //NOK fps drop
+          ,MIX_SOFT_LIGHT = 24    
 
           ,MIX_OR		=25
           ,MIX_XOR  =26
@@ -52,6 +62,17 @@ typedef enum {
 
             } MixModeType;
 #define HARD_MIX_TRIGGER 128
+
+
+	typedef	enum form_clock_type_selector
+		{
+			CLOCK_DOT = 0
+			,CLOCK_BAR = 1
+			,CLOCK_PULSE =2
+
+		}clock_type_selector;
+
+
 
 
 
@@ -88,7 +109,7 @@ class tpm_fx
 
     void strobe(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , uint16_t on_Frames ,uint16_t off_frames , uint16_t frame_position ,MixModeType mix_mode = MIX_REPLACE, uint8_t brightness = 255);
     void BlinkingEyes(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , uint16_t EyeWidth, uint16_t EyeSpace, uint16_t eye_pos, uint16_t on_frames,  uint16_t frame_pos, uint8_t fade_speed,  MixModeType mix_mode = MIX_ADD, uint8_t brightness =255);
-    void meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos,  byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay);
+    void meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color ,uint16_t frame_pos,  byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay, uint8_t level =255);
 
 
 //Modify Layer FX
@@ -119,7 +140,7 @@ class tpm_fx
       // Reverse 1sit led in iput array becomes the last led in outputArray
       // Mirror + reverse = Like Reverse and then take the Second half and mirror it to the first.
       void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,MixModeType mix_mode = MIX_ADD, uint8_t mix_level = 255 , boolean onecolor = false );
-      void mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset = 0, uint8_t extend = 0);
+      void mixHistoryOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed, boolean mirror ,MixModeType mix_mode, uint8_t mix_level, boolean onecolor, uint16_t offset = 0, uint8_t extend = 0,uint8_t extend_tick = 0, uint8_t colorSelect = 0);
       
       //void mixOntoLedArray(CRGB *InputLedArray, CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led = 0, boolean reversed = false, boolean mirror = false ,uint8_t mix_mode = 1 , uint8_t mix_level = 255 , boolean onecolor = false );
 
@@ -135,8 +156,13 @@ class tpm_fx
      void reverse(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led);
      void mirror(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed = false);
 
+     void CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , MixModeType mix_mode, uint8_t brightness ,boolean hour_bool , clock_type_selector clock_type, int Value  , uint8_t length = 1           );
+     void CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, uint16_t NrLeds, CRGBPalette16 currentPalette , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t pal_index, uint16_t index_add , TBlendType blending, boolean reversed , boolean mirror  ,  boolean onecolor   );
+     void CLOCK(CRGB *InputLedArray, CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t offset, uint16_t extend ,uint8_t extend_tick, uint8_t colorSelect, boolean reversed , boolean mirror  ,  boolean onecolor   );
+
+
   //private:
-      // Palette Get
+      // Palette Get 
     
     
 };
