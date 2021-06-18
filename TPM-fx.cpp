@@ -1088,63 +1088,27 @@ void tpm_fx::KITT_LeftToRight(CRGB *OutputLedArray, uint16_t StartLed, uint16_t 
 											tpm_fx::mixOntoLed(OutputLedArray, i+EyeSize+1 	, faded_color , mix_mode,brightness);
 }
 
-void tpm_fx::CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value , uint8_t length )
+void tpm_fx::CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value,boolean clock_24h )
  {
 
 	 uint16_t pos = 0;
 
 
-	 if ( hour_bool == true)  		pos = NrLeds * Value / 24 ;
-	 else 							pos =  NrLeds * Value / 60 ;
-
-	
-
-
-	if (clock_type == CLOCK_DOT) 
-	{
-		if (length > 1)
-		{
-			
-			uint16_t halft_length = length/2;
-			//uint16_t new_pos = 0 :
-
-			if (pos > halft_length   && pos < NrLeds - halft_length -1   )
-			{
-					for (uint16_t i = pos-halft_length  ; i <= pos + halft_length-1 ; i++)  tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
-
-			}
-
-			else if ( pos <= halft_length + isODDNum(NrLeds) )
+	 if ( hour_bool == true) 
+	 {
+				if (clock_24h) pos = NrLeds * Value / 24 ;
+				else
 				{
-					for (uint16_t i = 0; i < pos + halft_length + isODDNum(NrLeds)  ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
-
-					for (uint16_t i = NrLeds -  (length - (pos + halft_length + isODDNum(NrLeds) )) ; i < NrLeds ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
-
+		 			if (Value >= 12) Value = Value -12;
+			 		pos = NrLeds * Value / 12 ;
 				}
-			else if (pos >= NrLeds - halft_length -1 )
-				{
-					for (uint16_t i = pos - halft_length-1  ; i < NrLeds ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
-
-					for (uint16_t i = 0 ; i < length -  NrLeds - pos    ; i++) tpm_fx::mixOntoLed(OutputLedArray, i    + StartLed, color , mix_mode,brightness);
-				}
-						
-		}
-		else  tpm_fx::mixOntoLed(OutputLedArray, pos + StartLed, color , mix_mode,brightness);
-		
-
-
-		
-
-
-	}
-	
-	
+	 } 	
+	 else		pos =  NrLeds * Value / 60 ;
 
 	
-	
-	
-	
-	
+
+
+	if  	(clock_type == CLOCK_DOT) tpm_fx::mixOntoLed(OutputLedArray, pos + StartLed, color , mix_mode,brightness);
 	else if (clock_type == CLOCK_BAR) for( uint16_t i = StartLed; i <= StartLed + pos ; i++)  tpm_fx::mixOntoLed(OutputLedArray, i, color, mix_mode, brightness);
 
 
@@ -1152,14 +1116,22 @@ void tpm_fx::CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRG
 
 }
 
-void tpm_fx::CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, uint16_t NrLeds, CRGBPalette16 currentPalette , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t pal_index, uint16_t index_add , TBlendType blending, boolean reversed , boolean mirror  ,  boolean onecolor   )
+void tpm_fx::CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, uint16_t NrLeds, CRGBPalette16 currentPalette , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t pal_index, uint16_t index_add , TBlendType blending, boolean reversed , boolean mirror  ,  boolean onecolor  , boolean clock_24h )
  {
 
 	 uint16_t pos = 0;
 
 
-	 if ( hour_bool == true)  		pos = NrLeds * Value / 24 ;
-	 else 							pos =  NrLeds * Value / 60 ;
+	 if ( hour_bool == true) 
+	 {
+		 		if (clock_24h) pos = NrLeds * Value / 24 ;
+				else
+				{
+		 			if (Value >= 12) Value = Value -12;
+			 		pos = NrLeds * Value / 12 ;
+				}
+	 } 	
+	 else 		pos =  NrLeds * Value / 60 ;
 
 
 
@@ -1170,13 +1142,22 @@ void tpm_fx::CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, 
 }
 
 // Clock with a history Led array as an input. (FFT)
-void tpm_fx::CLOCK(CRGB *InputLedArray, CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t offset, uint16_t extend ,uint8_t extend_tick, uint8_t colorSelect, boolean reversed , boolean mirror  ,  boolean onecolor   )
+void tpm_fx::CLOCK(CRGB *InputLedArray, CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t offset, uint16_t extend ,uint8_t extend_tick, uint8_t colorSelect, boolean reversed , boolean mirror  ,  boolean onecolor ,boolean clock_24h  )
  {
 
 	 uint16_t pos = 0;
 
 
-	 if ( hour_bool == true)  		pos = NrLeds * Value / 24 ;
+	 if ( hour_bool == true)
+	 {
+		 		if (clock_24h) pos = NrLeds * Value / 24 ;
+				else
+				{
+		 			if (Value >= 12) Value = Value -12;
+			 		pos = NrLeds * Value / 12 ;
+				}
+
+	 }  		
 	 else 							pos =  NrLeds * Value / 60 ;
 
 	tpm_fx::mixHistoryOntoLedArray(InputLedArray, OutputLedArray , pos+1 , StartLed , reversed, mirror , mix_mode,  brightness,  onecolor, offset, extend ,extend_tick, colorSelect);

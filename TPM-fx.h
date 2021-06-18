@@ -156,9 +156,9 @@ class tpm_fx
      void reverse(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led);
      void mirror(CRGB *OutputLedArray , uint16_t nr_leds, uint16_t start_led, boolean reversed = false);
 
-     void CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , MixModeType mix_mode, uint8_t brightness ,boolean hour_bool , clock_type_selector clock_type, int Value  , uint8_t length = 1           );
-     void CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, uint16_t NrLeds, CRGBPalette16 currentPalette , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t pal_index, uint16_t index_add , TBlendType blending, boolean reversed , boolean mirror  ,  boolean onecolor   );
-     void CLOCK(CRGB *InputLedArray, CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t offset, uint16_t extend ,uint8_t extend_tick, uint8_t colorSelect, boolean reversed , boolean mirror  ,  boolean onecolor   );
+     void CLOCK(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, CRGB color , MixModeType mix_mode, uint8_t brightness ,boolean hour_bool , clock_type_selector clock_type, int Value  ,boolean clock_24h = false    );
+     void CLOCK(CRGB *OutputLedArray, CRGB *TempLedArray, uint16_t StartLed, uint16_t NrLeds, CRGBPalette16 currentPalette , MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t pal_index, uint16_t index_add , TBlendType blending, boolean reversed , boolean mirror  ,  boolean onecolor ,boolean clock_24h = false   );
+     void CLOCK(CRGB *InputLedArray, CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds, MixModeType mix_mode, uint8_t brightness , boolean hour_bool , clock_type_selector clock_type, int Value, uint16_t offset, uint16_t extend ,uint8_t extend_tick, uint8_t colorSelect, boolean reversed , boolean mirror  ,  boolean onecolor ,boolean clock_24h = false  );
 
 
   //private:
