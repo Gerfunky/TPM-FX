@@ -831,7 +831,7 @@ void tpm_fx::DotSaw(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, uin
 		byte dothue = 64;
 		for (int i = 0; i < nr_dots; i++)
 		{
-			OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds )] |= CHSV(inputhue + dothue, Saturation, brightness);
+			OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds-1 )] |= CHSV(inputhue + dothue, Saturation, brightness);
 			dothue += (255 / nr_dots);
 		}
 
@@ -839,14 +839,14 @@ void tpm_fx::DotSaw(CRGB *OutputLedArray, uint8_t inputhue, uint8_t nr_dots, uin
 
 void tpm_fx::DotSaw(CRGB *OutputLedArray,  CRGBPalette16 currentPalette, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm , uint8_t brightness )  // Saw Dots that run in cirles in the form
 {	
-	for (int i = 0; i < nr_dots; i++)	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds )] |= ColorFromPalette(currentPalette, i* 16 ,brightness,LINEARBLEND) ;
+	for (int i = 0; i < nr_dots; i++)	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds-1 )] |= ColorFromPalette(currentPalette, i* 16 ,brightness,LINEARBLEND) ;
 
 }
 
 void tpm_fx::DotSaw(CRGB *OutputLedArray,CRGB inputcolor, uint8_t nr_dots, uint16_t start_led, uint16_t nr_leds, uint8_t bpm , uint8_t brightness )  // Saw Dots that run in cirles in the form
 {	
     inputcolor.nscale8(brightness); 
-	for (int i = 0; i < nr_dots; i++) 	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds)] |= inputcolor;
+	for (int i = 0; i < nr_dots; i++) 	OutputLedArray[map(beat16(i + bpm), 0, 65535, start_led , start_led + nr_leds-1)] |= inputcolor;
   
 
 }

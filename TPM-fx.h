@@ -56,6 +56,7 @@ typedef enum {
           ,MIX_AND  =27
 
           ,MIX_REPLACE  = 28
+          ,MIX_IGNORE = 29
           
 
           
