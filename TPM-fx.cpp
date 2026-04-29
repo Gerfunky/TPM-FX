@@ -1,5 +1,5 @@
 
-#include "TPM-fx.h"
+#include "TPM-FX.h"
 	
 
 
@@ -1030,8 +1030,6 @@ void tpm_fx::meteorRain(CRGB *OutputLedArray, uint16_t StartLed, uint16_t NrLeds
 		//fadeToBlackBy(&color,1,   meteorTrailDecay);  
         //fadeToBlack(j, meteorTrailDecay );  
 		tpm_fx::fadeLedArray(OutputLedArray, j,1, meteorTrailDecay)   ; 
-
-	
       }
 
     }
